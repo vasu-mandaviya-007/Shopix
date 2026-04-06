@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 from decouple import config, Csv
 import dj_database_url
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
 from datetime import timedelta
 
 load_dotenv()
@@ -15,6 +15,8 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="", cast=Csv())
 
+
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -44,12 +46,12 @@ CKEDITOR_UPLOAD_PATH = "uploads/"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ) 
+    )
 }
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",  # MUST be at the top
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -75,12 +77,12 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv())
 
-CORS_ALLOW_CREDENTIALS = True 
+CORS_ALLOW_CREDENTIALS = True
 
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30), 
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
 }
 
 
@@ -158,7 +160,7 @@ USE_I18N = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "public/static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # for production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 # Media files (user uploads)

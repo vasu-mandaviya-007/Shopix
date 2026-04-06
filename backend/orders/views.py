@@ -306,7 +306,7 @@ def create_checkout_session(request):
                     order=order,
                     product=item.variant,
                     price=selling_price,
-                    quantity=item.quantity,
+                    quantity=item.quantity, 
                     original_price=item.variant.mrp,
                 )
 
@@ -319,8 +319,8 @@ def create_checkout_session(request):
                     "user_id": request.user.id,
                     "order_id": order.uid,
                 },  # Use order.id if uid is not an attribute
-                "success_url": "http://localhost:5173/checkout/success?session_id={CHECKOUT_SESSION_ID}",
-                "cancel_url": "http://localhost:5173/cart",
+                "success_url": f"{settings.FRONTEND_URL}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}",
+                "cancel_url": f"{settings.FRONTEND_URL}/cart",
             }
 
             # 4. STRIPE COUPON LOGIC (Magic Happens Here)
