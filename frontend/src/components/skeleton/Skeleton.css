@@ -1,0 +1,20 @@
+@keyframes mui-wave {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.mui-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.11); /* EXACT MUI base */
+  animation: mui-wave 1.6s linear infinite;
+
+}
+

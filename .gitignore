@@ -1,0 +1,19 @@
+
+# Python / Django
+*.pyc
+*.pyo
+.env
+__pycache__/
+db.sqlite3
+media/
+staticfiles/
+static/
+.venv
+.vscode/
+
+# React
+node_modules/
+frontend/build/
+frontend/dist/
+.env.local
+open.bat

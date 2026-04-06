@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .font-bold {
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* --- HEADER SECTION --- */
+        .logo-text {
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #64748b;
+            /* Grayish blue */
+        }
+
+        .logo-highlight {
+            color: #2563eb;
+            /* Bright blue 'O' */
+        }
+
+        .invoice-title {
+            font-size: 32px;
+            color: #111827;
+        }
+
+        /* --- META ROW (Date & Invoice No) --- */
+        .meta-table {
+            margin-top: 20px;
+        }
+
+        .meta-table td {
+            padding-top: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* --- ADDRESS SECTION --- */
+        .address-table {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .address-table td {
+            vertical-align: top;
+            padding-bottom: 20px;
+        }
+
+        .address-title {
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 5px;
+        }
+
+        /* --- ITEMS TABLE --- */
+        .items-table {
+            margin-bottom: 0;
+            outline: 1px solid #444;
+        }
+
+        .items-table th {
+            padding: 10px;
+            padding-top: 10px;
+            padding-bottom: 6px;
+            text-align: left;
+            font-weight: bold;
+            color: #fff;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #444;
+            /* Very light gray */
+        }
+
+        .items-table td {
+            padding: 10px;
+            padding-top: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        /* --- TOTALS SECTION --- */
+        /* Using colspan to push totals to the right exactly like the image */
+        .total-row td {
+            padding: 8px 10px;
+            padding-top: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .total-label {
+            text-align: left;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .total-value {
+            text-align: left;
+            color: #4b5563;
+        }
+
+        .final-total td {
+            padding: 8px 10px;
+            padding-top: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .final-total .total-label {
+            font-size: 14px;
+        }
+
+        .final-total .total-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .price-table {
+            border: 1px solid #e5e7eb;
+            margin-bottom: 10px;
+        }
+
+        /* --- FOOTER --- */
+        .footer-note {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        .wrap-text {
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body>
+
+    <table class="w-full">
+        <tr>
+            <td class="logo-text">SH<span class="logo-highlight">O</span>PIX</td>
+            <td class="text-right invoice-title">Invoice</td>
+        </tr>
+    </table>
+
+    <table class="w-full meta-table">
+        <tr>
+            <td><span class="font-bold">Date:</span> {{ order.created_at|date:"d/m/Y" }}</td>
+            <td class="text-right"><span class="font-bold">Invoice No:</span> {{ order.uid|truncatechars:12 }}</td>
+        </tr>
+    </table>
+
+    <table class="w-full address-table">
+        <tr>
+            <td style="width: 50%; display: flex; gap: 50px;">
+                <div class="address-title">Invoiced To:</div>
+                <span class="font-bold">{{ order.full_name }}</span> <br>
+                {{ order.address_line }} <br>
+                {{ order.city }}, {{ order.state }} <br>
+                {{ order.postal_code }} <br>
+                <span style="margin-top: 5px;">Phone: {{ order.phone }}</span>
+            </td>
+            <td class="text-right" style="width: 50%; display: flex;">
+                <div class="address-title">Pay To:</div>
+                <span>Shopix Inc</span> <br>
+                <span>2705 N. Enterprise St</span> <br>
+                <span>Mumbai, Maharashtra 400053</span> <br>
+                <span>contact@shopix.com</span>
+            </td>
+        </tr>
+    </table>
+
+
+    <table class="w-full items-table">
+        <thead>
+            <tr>
+                <th style="width: 40%;">Product</th>
+                <th style="width: 20%; text-align: center;">Price</th>
+                <th style="width: 15%; text-align: center;">QTY</th>
+                <th style="width: 25%; text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product.product.title|default:"Item" }}</td>
+                <td style="text-align: center;">Rs. {{ item.price }}</td>
+                <td style="text-align: center;">{{ item.quantity }}</td>
+                <td style="text-align: right;">Rs. {{ item.total_price }}</td>
+            </tr>
+            {% endfor %}
+
+            <tr>
+                <td colspan="4" style="border: none; padding: 5px;"></td>
+            </tr>
+
+        </tbody>
+    </table>
+
+    <h2>Price Details</h2>
+    <table class="w-full price-table">
+
+        <tr class="total-row">
+            <td class="total-label">Sub Total (Listing Price):</td>
+            <td class="total-value">Rs. {{ total_mrp }}</td>
+        </tr>
+
+        {% if mrp_discount > 0 %}
+        <tr class="total-row">
+            <td class="total-label">Discount:</td>
+            <td class="total-value" style="color: #059669;">- Rs. {{ mrp_discount }}</td>
+        </tr>
+        {% endif %}
+
+        {% if order.discount_amount > 0 %}
+        <tr class="total-row">
+            <td class="total-label">Discount:</td>
+            <td class="total-value" style="color: #059669;">- Rs. {{ order.discount_amount }}</td>
+        </tr>
+        {% endif %}
+
+        <tr class="total-row">
+            <td class="total-label">Tax / Shipping:</td>
+            <td class="total-value">Free</td>
+        </tr>
+
+        <tr class="final-total">
+            <td class="total-label">Total:</td>
+            <td class="total-value">Rs. {{ order.total_amount }}</td>
+        </tr>
+    </table>
+
+    <h2 style="margin-top: 40px;">Payment Details</h2>
+    <table style="border: 1px solid #cacccf;">
+
+        <tr>
+            <td style="padding: 8px 10px; padding-bottom: 6px; ">
+                <span class="font-bold">Payment Method:</span> <br>
+                <span style="overflow-wrap: break-word;">{{ order.payment_method }}</span>
+            </td>
+            <td style="padding: 8px 10px; padding-bottom: 6px; "><span class="font-bold">Order ID:</span> <br> <span
+                    style="overflow-wrap: break-word;">{{ order.uid }}</span></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 10px; padding-bottom: 6px;" colspan="2" class="wrap-text">
+                <span class="font-bold">Transaction ID:</span> <br>
+                <span style="overflow-wrap: break-word;">{{order.transaction_id}}</span>
+            </td>
+        </tr>
+
+    </table>
+
+    <div class="footer-note">
+        <span class="font-bold">NOTE:</span> This is a computer generated receipt and does not require a physical
+        signature.
+    </div>
+
+</body>
+
+</html>
