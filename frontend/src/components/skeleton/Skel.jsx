@@ -1,4 +1,4 @@
-import "./skeleton.css";
+import "./Skeleton.css";
 
 const Skel = ({ className }) => (
     <div className={`mui-skeleton rounded ${className}`} />
