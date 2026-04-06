@@ -5,14 +5,13 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { getAccess } from '../auth';
 import { CartContext } from '../context/CartContext';
-// import { CartContext } from './context/CartContext';
+import API_BASE_URL from '../config/config';
 
-// Initialize Stripe (Replace with your Test Publishable Key)
-const stripePromise = loadStripe('pk_test_51T3zrLEE4mQq25JrCrngVvrbX2Wm4VDm1QGyaMcfII7j2BTPEoAoI8ATDMVZfNqBtL5tpAwMlbDBG5N1F8OHuZtd00a30fl46o');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const CheckoutForm = ({ addressId }) => {
     
-    const stripe = useStripe();
+    const stripe = useStripe(); 
     const elements = useElements();
     const { setCart } = useContext(CartContext);
     const navigate = useNavigate();
@@ -34,7 +33,7 @@ const CheckoutForm = ({ addressId }) => {
 
         try {
             // 1. Ask Django for Stripe Client Secret
-            const intentRes = await axios.post('http://127.0.0.1:8000/api/orders/create-payment-intent/', {}, { headers });
+            const intentRes = await axios.post(`${API_BASE_URL}/api/orders/create-payment-intent/`, {}, { headers });
             const clientSecret = intentRes.data.clientSecret;
 
             // 2. Confirm Payment with Stripe
@@ -46,7 +45,7 @@ const CheckoutForm = ({ addressId }) => {
 
             // 3. If Success, finalize order in Django
             if (result.paymentIntent.status === 'succeeded') {
-                const orderRes = await axios.post('http://127.0.0.1:8000/api/orders/finalize-order/', {
+                const orderRes = await axios.post(`${API_BASE_URL}/api/orders/finalize-order/`, {
                     address_id: addressId,
                     transaction_id: result.paymentIntent.id
                 }, { headers });

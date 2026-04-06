@@ -33,7 +33,6 @@ import ScrollManager from './pages/ScrollManager'
 
 function App() {
 
-    // const { loading } = useContext(AuthContext);
     const { authLoading } = useContext(AuthContext);
 
 
@@ -46,7 +45,7 @@ function App() {
 
                 <Navbar />
 
-                {authLoading && <div className='fixed w-full h-full z-50 bg-black'></div>}
+                {/* {authLoading && <div className='fixed w-full h-full z-50 bg-black'></div>} */}
 
                 <Routes>
 
@@ -58,13 +57,6 @@ function App() {
                         </PublicRoute>
                     } />
 
-                    {/* <Route path='/profile' element={
-                        <PrivateRoute>
-                            <Profile />
-                        </PrivateRoute>
-                    }
-
-                    /> */}
 
                     <Route path='/profile' element={
                         <PrivateRoute>
@@ -86,9 +78,8 @@ function App() {
 
                     <Route path='/category-skeleton' element={<ProductListSkeleton />} />
 
-                    {/* <Route path='/products/:slug' element={<ProductList />} /> */}
-                    {/* <Route path='/products/:slug' element={<CategoryPage />} /> */}
                     <Route path='/products/:slug' element={<ShopPage />} />
+
                     <Route path='/products/' element={<ShopPage />} />
 
                     <Route path='/cart' element={<CartPage />} />

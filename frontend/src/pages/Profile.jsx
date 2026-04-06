@@ -5,6 +5,7 @@ import { NavLink } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import { getAccess } from '../auth'
 import default_avatar from "../assets/default-avatar.png"
+import API_BASE_URL from '../config/config'
 
 
 const Profile = () => {
@@ -77,7 +78,7 @@ const Profile = () => {
 
             const token = getAccess();
 
-            const response = await fetch('http://localhost:8000/api/auth/profile/', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/profile/`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,

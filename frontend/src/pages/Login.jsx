@@ -104,8 +104,6 @@ const Login = () => {
 
                 <div style={{ background: `url(${login_banner})` }} className='flex-4 px-5 max-lg:hidden w-full h-auto'>
 
-                    {/* <img src="" className='h-full w-full' alt="" /> */}
-
                 </div>
 
 
@@ -180,7 +178,6 @@ const Login = () => {
 
                                 <div className='flex items-center text-center flex-col mb-10'>
                                     <h3>Please Enter the OTP sent to <span className='font-semibold'>{email}</span> </h3>
-                                    {/* <p>9313297933. <button className='text-blue-500 hover:text-blue-600 cursor-pointer'>Change</button> </p> */}
                                 </div>
 
                                 <div className='flex justify-between w-[90%] mb-8'>
