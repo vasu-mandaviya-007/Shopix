@@ -376,7 +376,6 @@ def stripe_webhook(request):
     # ✅ payment completed event
     if event_type == "checkout.session.completed":
 
-        print("✅ Complete Working")
         session = event["data"]["object"]
         session_id = session.get("id")
 
@@ -387,7 +386,9 @@ def stripe_webhook(request):
             #     print("Order already exists. Ignoring duplicate webhook.")
             #     return JsonResponse({"status": "already processed"}, status=200)
 
+            print(f"✅ Complete Working {session_id}")
             metadata = session.get("metadata", {})
+            print(f"✅ Metadata Working {metadata}")
 
             user_id = metadata.get("user_id")
             order_id = metadata.get("order_id")
