@@ -350,171 +350,178 @@ def create_checkout_session(request):
             return JsonResponse({"error": str(e)}, status=500)
 
 
-# @csrf_exempt
-# def stripe_webhook(request):
-
-#     payload = request.body
-#     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-#     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-
-#     try:
-#         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-#     except ValueError:
-#         return JsonResponse(
-#             {"status": "invalid payload"}, status=400
-#         )  # invalid payload
-#     except stripe.error.SignatureVerificationError:
-#         return JsonResponse(
-#             {"status": "invalid signature"}, status=400
-#         )  # invalid signature
-
-
-#     print(f"🔔 WEBHOOK RECEIVED: {event['type']}")
-
-#     # ✅ payment completed event
-#     if event["type"] == "checkout.session.completed":
-
-#         session = event["data"]["object"]
-#         session_id = session.get("id")
-
-#         try:
-
-#             # Check if we already processed this exact payment
-#             # if Order.objects.filter(transaction_id=session_id).exists():
-#             #     print("Order already exists. Ignoring duplicate webhook.")
-#             #     return JsonResponse({"status": "already processed"}, status=200)
-
-#             metadata = session.get("metadata", {})
-
-#             user_id = metadata.get("user_id")
-#             order_id = metadata.get("order_id")
-#             print("No order id", order_id)
-
-#             if order_id:
-
-#                 try:
-
-#                     order = Order.objects.get(uid=order_id)
-#                     order.status = "Paid"
-#                     order.is_paid = True
-#                     # order.transaction_id = session_id
-#                     order.save()
-
-#                     print("✅ Order Placed Successfully ")
-
-#                     user_instance = None
-#                     if user_id:
-#                         try:
-#                             user_instance = User.objects.get(id=int(user_id))
-#                             cart = Cart.objects.filter(user=user_instance).first()
-#                             if cart:
-
-#                                 if cart.coupon:
-#                                     cart.coupon.used_by.add(user_id)
-
-#                                 cart.cart_items.all().delete()
-#                                 cart.coupon = None
-#                                 cart.save()
-
-#                         except User.DoesNotExist:
-#                             print(f"User with ID {user_id} not found.")
-
-#                 except Order.DoesNotExist:
-#                     return JsonResponse({"status": "Order not found"}, status=404)
-
-#         except Exception as e:
-
-#             print(f"CRITICAL ERROR in webhook: {e}")
-
-#             # Tell Stripe: "Something broke, please try again later!"
-#             return JsonResponse({"error": "Failed to create order"}, status=500)
-
-#     elif event["type"] == "charge.refunded":
-#         charge = event["data"]["object"]
-#         payment_intent = charge.get("payment_intent")
-
-#         if payment_intent:
-#             try:
-#                 # Transaction ID se order dhoondein
-#                 order = Order.objects.get(transaction_id=payment_intent)
-#                 order.refund_status = "Completed"
-#                 order.save()
-
-#                 print(f"✅ Order {order.uid} marked as REFUND COMPLETED!")
-#             except Order.DoesNotExist:
-#                 pass
-
-#     return HttpResponse(status=200)
-
-
 @csrf_exempt
 def stripe_webhook(request):
+
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except Exception as e:
-        print(f"❌ Webhook Signature Error: {e}")
-        return JsonResponse({"status": "invalid signature"}, status=400)
+    except ValueError:
+        return JsonResponse(
+            {"status": "invalid payload"}, status=400
+        )  # invalid payload
+    except stripe.error.SignatureVerificationError:
+        return JsonResponse(
+            {"status": "invalid signature"}, status=400
+        )  # invalid signature
+
 
     print(f"🔔 WEBHOOK RECEIVED: {event['type']}")
 
-    if event["type"] == "checkout.session.completed":
+    event_type = str(event["type"]).strip()
+
+    # ✅ payment completed event
+    if event_type == "checkout.session.completed":
+
         session = event["data"]["object"]
-        metadata = session.get("metadata", {})
-
-        user_id = metadata.get("user_id")
-        order_id = metadata.get("order_id")
-
-        print(f"DEBUG: order_id={order_id}, user_id={user_id}")
-
-        if not order_id:
-            print("❌ ERROR: No order_id found in metadata!")
-            return JsonResponse({"error": "No order_id in metadata"}, status=400)
+        session_id = session.get("id")
+        print(session_id)
 
         try:
-            # Order update logic
-            order = Order.objects.get(uid=order_id)
-            order.status = "Paid"
-            order.is_paid = True
-            order.save()
-            print(f"✅ Order {order_id} marked as Paid")
 
-            # Cart clean logic
-            if user_id:
+            # Check if we already processed this exact payment
+            # if Order.objects.filter(transaction_id=session_id).exists():
+            #     print("Order already exists. Ignoring duplicate webhook.")
+            #     return JsonResponse({"status": "already processed"}, status=200)
+
+            metadata = session.get("metadata", {})
+
+            user_id = metadata.get("user_id")
+            order_id = metadata.get("order_id")
+            print("No order id", order_id)
+
+            if order_id:
+
                 try:
-                    # Safely convert to int
-                    u_id = int(user_id)
-                    user_instance = User.objects.get(id=u_id)
-                    cart = Cart.objects.filter(user=user_instance).first()
 
-                    if cart:
-                        if cart.coupon and user_id:
-                            cart.coupon.used_by.add(
-                                user_instance
-                            )  # Object pass karein, ID nahi
+                    order = Order.objects.get(uid=order_id)
+                    order.status = "Paid"
+                    order.is_paid = True
+                    # order.transaction_id = session_id
+                    order.save()
 
-                        cart.cart_items.all().delete()
-                        cart.coupon = None
-                        cart.save()
-                        print(f"🛒 Cart cleared for user {user_id}")
-                except (ValueError, User.DoesNotExist) as e:
-                    print(f"⚠️ User/Cart Error: {e}")
+                    print("✅ Order Placed Successfully ")
 
-            return HttpResponse(status=200)
+                    user_instance = None
+                    if user_id:
+                        try:
+                            user_instance = User.objects.get(id=int(user_id))
+                            cart = Cart.objects.filter(user=user_instance).first()
+                            if cart:
 
-        except Order.DoesNotExist:
-            print(f"❌ ERROR: Order {order_id} not found in DB")
-            return JsonResponse({"error": "Order not found"}, status=404)
+                                if cart.coupon:
+                                    cart.coupon.used_by.add(user_instance)
+
+                                cart.cart_items.all().delete()
+                                cart.coupon = None
+                                cart.save()
+
+                        except User.DoesNotExist:
+                            print(f"User with ID {user_id} not found.")
+
+                except Order.DoesNotExist:
+                    return JsonResponse({"status": "Order not found"}, status=404)
+
         except Exception as e:
-            print(f"💥 CRITICAL ERROR: {str(e)}")
-            return JsonResponse({"error": str(e)}, status=500)
 
-    # ... baaki events (refunded etc) ...
+            print(f"CRITICAL ERROR in webhook: {e}")
 
+            # Tell Stripe: "Something broke, please try again later!"
+            return JsonResponse({"error": "Failed to create order"}, status=500)
+
+    elif event_type == "charge.refunded":
+        charge = event["data"]["object"]
+        payment_intent = charge.get("payment_intent")
+
+        if payment_intent:
+            try:
+                # Transaction ID se order dhoondein
+                order = Order.objects.get(transaction_id=payment_intent)
+                order.refund_status = "Completed"
+                order.save()
+
+                print(f"✅ Order {order.uid} marked as REFUND COMPLETED!")
+            except Order.DoesNotExist:
+                pass
+
+    else:
+        # 🚩 YAHAN PATA CHALEGA KYU NAHI CHAL RAHA
+        print(f"⚠️ Event type didn't match! Expected 'checkout.session.completed' but got '{event_type}'")
+        
     return HttpResponse(status=200)
+
+
+# @csrf_exempt
+# def stripe_webhook(request):
+#     payload = request.body
+#     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+#     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+
+#     try:
+#         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+#     except Exception as e:
+#         print(f"❌ Webhook Signature Error: {e}")
+#         return JsonResponse({"status": "invalid signature"}, status=400)
+
+#     print(f"🔔 WEBHOOK RECEIVED: {event['type']}")
+
+#     if event["type"] == "checkout.session.completed":
+#         session = event["data"]["object"]
+#         metadata = session.get("metadata", {})
+
+#         user_id = metadata.get("user_id")
+#         order_id = metadata.get("order_id")
+
+#         print(f"DEBUG: order_id={order_id}, user_id={user_id}")
+
+#         if not order_id:
+#             print("❌ ERROR: No order_id found in metadata!")
+#             return JsonResponse({"error": "No order_id in metadata"}, status=400)
+
+#         try:
+#             # Order update logic
+#             order = Order.objects.get(uid=order_id)
+#             order.status = "Paid"
+#             order.is_paid = True
+#             order.save()
+#             print(f"✅ Order {order_id} marked as Paid")
+
+#             # Cart clean logic
+#             if user_id:
+#                 try:
+#                     # Safely convert to int
+#                     u_id = int(user_id)
+#                     user_instance = User.objects.get(id=u_id)
+#                     cart = Cart.objects.filter(user=user_instance).first()
+
+#                     if cart:
+#                         if cart.coupon and user_id:
+#                             cart.coupon.used_by.add(
+#                                 user_instance
+#                             )  # Object pass karein, ID nahi
+
+#                         cart.cart_items.all().delete()
+#                         cart.coupon = None
+#                         cart.save()
+#                         print(f"🛒 Cart cleared for user {user_id}")
+#                 except (ValueError, User.DoesNotExist) as e:
+#                     print(f"⚠️ User/Cart Error: {e}")
+
+#             return HttpResponse(status=200)
+
+#         except Order.DoesNotExist:
+#             print(f"❌ ERROR: Order {order_id} not found in DB")
+#             return JsonResponse({"error": "Order not found"}, status=404)
+#         except Exception as e:
+#             print(f"💥 CRITICAL ERROR: {str(e)}")
+#             return JsonResponse({"error": str(e)}, status=500)
+
+#     # ... baaki events (refunded etc) ...
+
+#     return HttpResponse(status=200)
 
 
 @api_view(["POST"])
