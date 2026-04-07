@@ -1,0 +1,226 @@
+
+.select2-container--admin-autocomplete{
+    background : #212529;
+    border :1px solid #495057;
+}
+
+/* 1. Modal (Popup) dabe ko bada (85% width) aur center karega */
+.modal-dialog {
+  max-width: 85% !important;
+  margin: 2rem auto !important;
+}
+
+/* 2. Modal ke andar Iframe ki height badhayega taaki scroll kam karna pade */
+.modal-body iframe {
+  min-height: 75vh !important;
+  width: 100% !important;
+}
+
+/* 3. Form ke input fields (Text, Select) ko poori width (100%) dega */
+.vTextField,
+.vLargeTextField,
+.select2-container,
+select {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* 4. Form labels aur layout ko better space dega */
+.form-group .col-sm-9,
+.form-group .col-sm-3 {
+  flex: 0 0 100% !important;
+  max-width: 100% !important;
+  text-align: left !important;
+}
+
+/* --- Tabular Inline Fixes --- */
+
+/* 1. Table ko poori 100% width lene ko kaho */
+.inline-group .tabular table {
+  width: 100% !important;
+  table-layout: fixed !important; /* Columns ko barabar hisso mein baantega */
+}
+
+/* 2. Inputs aur Dropdowns ko poora cell cover karne ko kaho */
+.inline-group .tabular table input[type="text"],
+.inline-group .tabular table input[type="number"],
+.inline-group .tabular table select {
+  width: 100% !important;
+  min-width: 150px; /* Kam se kam itni jagah toh le */
+  box-sizing: border-box;
+  padding: 8px !important; /* Thoda padding add kiya taaki mote-mote dikhein */
+}
+
+/* 3. Table ke cells (td) ke beech mein space add karo */
+.inline-group .tabular table td,
+.inline-group .tabular table th {
+  padding: 12px 10px !important;
+  vertical-align: middle !important;
+}
+
+.inline-group .tabular table td.original,
+.inline-group .tabular table th.original {
+  padding: 0 0 !important;
+  width: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* 4. Delete column ko thoda chota rakho taaki baaki fields ko zyada jagah mile */
+.inline-group .tabular table th.delete,
+.inline-group .tabular table td.delete {
+  width: 80px !important;
+  text-align: left !important;
+}
+
+/* =========================================
+   STACKED INLINE PREMIUM STYLING (HIGH POWER)
+   ========================================= */
+
+#content-main .inline-group {
+  margin-left: 10px !important;
+  margin-right: 10px !important;
+}
+
+#content-main .inline-group .inline-related {
+  border: 1px solid #555 !important;
+  border-radius: 8px !important;
+  margin-bottom: 25px !important;
+  background-color: #2a2d34 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  overflow: hidden !important;
+}
+
+#content-main .inline-group .inline-related h2,
+#content-main .inline-group .inline-related h3 {
+  background-color: #17a2b8 !important;
+  color: #ffffff !important;
+  padding: 12px 20px !important;
+  margin: 0 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-bottom: none !important;
+}
+
+#content-main .inline-group .inline-related h2 a.inline-deletelink,
+#content-main .inline-group .inline-related h3 a.inline-deletelink {
+  float: right !important;
+  background-color: #dc3545 !important;
+  color: #fff !important;
+  padding: 5px 12px !important;
+  border-radius: 4px !important;
+  font-size: 13px !important;
+  text-decoration: none !important;
+  margin-top: -3px !important;
+}
+
+.select2-container .select2-selection {
+  height: inherit !important;
+  min-width: 100px !important;
+}
+
+.select2-container .select2-selection .select2-selection__rendered,
+.select2-container .selection .select2-selection--single{
+  /* height: 100%; */
+  padding: 6px 12px !important;
+  padding-right: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  /* justify-content: center; */
+}
+
+.select2-container .select2-selection .select2-selection__arrow {
+  height: 26px !important;
+  position: absolute !important;
+  top: 50% !important;
+  translate: 0% -50% !important;
+  right: 5px !important;
+  width: 20px !important;
+}
+
+.select2-dropdown{
+    width: fit-content !important;
+    min-width: 300px !important;
+}
+
+#content-main .inline-group .inline-related fieldset {
+  padding: 20px !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+#content-main .inline-group .inline-related .form-row {
+  padding: 10px 0 !important;
+  border-bottom: 1px solid #444 !important;
+}
+#content-main .inline-group .inline-related .form-row:last-child {
+  border-bottom: none !important;
+}
+
+/* Make inputs look modern */
+/* #content-main .inline-group .inline-related input[type="text"],
+#content-main .inline-group .inline-related select {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 10px !important;
+  background-color: #1e1e22 !important; 
+  color: white !important;
+  border: 1px solid #555 !important;
+  border-radius: 5px !important;
+} */
+
+/* 6. "Add another" Button at the bottom */
+#content-main .inline-group.stacked .add-row a {
+  background-color: #28a745 !important; /* Green Add button */
+  color: white !important;
+  padding: 10px 20px !important;
+  border-radius: 5px !important;
+  text-decoration: none !important;
+  font-weight: bold !important;
+  display: inline-block !important;
+  margin-top: 10px !important;
+}
+
+/* input,
+select {
+  border-color: #2a9fd6;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(42, 159, 214, 0.25);
+} */
+
+/* input{
+    background-color: #212529 !important;
+    color: white !important;
+} */
+
+#changelist-search .form-group {
+  margin-bottom: 0 !important;
+}
+
+
+/* Exact Bootstrap 'form-control' Style For All Inputs */
+ input[type="text"],
+ input[type="number"],
+ select {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0.375rem 0.75rem !important; /* Bootstrap standard padding */
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+    outline: none;
+    border: 1px solid #495057c9 !important;
+    border-radius: 0.25rem !important; /* Bootstrap standard curve */
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out !important;
+    background-color: transparent; /* Jazzmin ko color control karne do */
+}
+
+
+
+/* Focus karne par Bootstrap wala Blue Glow (Optional but looks great) */
+ input:focus,
+ select:focus {
+    border-color: #80bdff !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
