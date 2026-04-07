@@ -376,9 +376,9 @@ def stripe_webhook(request):
     # ✅ payment completed event
     if event_type == "checkout.session.completed":
 
+        print("✅ Complete Working")
         session = event["data"]["object"]
         session_id = session.get("id")
-        print(session_id)
 
         try:
 
@@ -450,7 +450,7 @@ def stripe_webhook(request):
     else:
         # 🚩 YAHAN PATA CHALEGA KYU NAHI CHAL RAHA
         print(f"⚠️ Event type didn't match! Expected 'checkout.session.completed' but got '{event_type}'")
-        
+
     return HttpResponse(status=200)
 
 
