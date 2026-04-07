@@ -13,7 +13,7 @@ def categories_list(req):
     categories = Category.objects.filter(parent__isnull=True).order_by("created_at")
     serializer = CategorySerializer(
         categories, many=True, context={"request": req}
-    ).data
+    ).data 
 
     return Response({"categories": serializer})
  

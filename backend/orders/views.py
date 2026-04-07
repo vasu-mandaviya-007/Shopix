@@ -1,10 +1,9 @@
-from django.shortcuts import get_object_or_404, render
+import json
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from cart.models import Cart, CartItems
-from cart.serializers import CartSerializer
-from django.db import transaction
+from cart.models import Cart
 from .models import Order, OrderItem
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -12,9 +11,13 @@ from .models import Address
 from .serializers import AddressSerializer
 import stripe
 from django.conf import settings
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+
 
 from orders.serializers import OrderSerializer
-from products.models import ProductVariant
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -101,128 +104,31 @@ def manage_address_details(request, address_uid):
         )
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def create_payment_intent(request):
-    # _get_cart is your existing helper function
-    cart, _ = Cart.objects.get_or_create(user=request.user)
-
-    if not cart.cart_items.exists():
-        return Response({"error": "Cart is empty"}, status=400)
-
-    # Stripe needs amount in cents
-    amount = int(cart.total_price * 100)
-
-    try:
-        intent = stripe.PaymentIntent.create(
-            amount=amount, currency="usd", metadata={"user_id": request.user.id}
-        )
-        return Response({"clientSecret": intent["client_secret"]})
-    except Exception as e:
-        print(e)
-        return Response({"error": str(e)}, status=400)
-
-
-# Create your views here.
-@api_view(["POST"])
-def get_orders(request):
-    return Response({"message": "All Orders"})
-
-
-@api_view(["POST"])
-def create_order(request):
-
-    cart = Cart.objects.get(user=request.user)
-
-    data = request.data
-
-    try:
-
-        with transaction.atomic():
-
-            order = Order.objects.create(
-                user=request.user,
-                email=data.get("email"),
-                full_name=data.get("full_name"),
-                address=data.get("address"),
-                city=data.get("city"),
-                postal_code=data.get("postal_code"),
-                total_amount=cart.total_price,
-            )
-
-            for item in cart.cart_items.all():
-                OrderItem.objects.create(
-                    order=order,
-                    variant=item.variant,
-                    price=item.variant.price,
-                    quantity=item.quantity,
-                )
-
-            return Response(
-                {
-                    "success": True,
-                    "message": "All Orders",
-                    "cart": CartSerializer(cart).data,
-                }
-            )
-
-    except Exception as e:
-        return Response(
-            {"success": False, "error": str(e), "cart": CartSerializer(cart).data}
-        )
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def finalize_order(request):
-
-    cart = Cart.objects.get(user=request.user)
-
-    address_id = request.data.get("address_id")
-    transaction_id = request.data.get("transaction_id")
-
-    # Fetch the exact address the user selected
-    address = get_object_or_404(Address, uid=address_id, user=request.user)
-
-    with transaction.atomic():
-        # 1. Create Order with Address Snapshot
-        order = Order.objects.create(
-            user=request.user,
-            full_name=address.full_name,
-            address=address.address_line,
-            city=address.city,
-            postal_code=address.pincode,
-            total_amount=cart.total_price,
-            is_paid=True,
-            transaction_id=transaction_id,
-            payment_method="Stripe",
-        )
-
-        # 2. Move Items
-        for item in cart.cart_items.all():
-            OrderItem.objects.create(
-                order=order,
-                variant=item.variant,
-                price=item.variant.price,
-                quantity=item.quantity,
-            )
-            # Deduct inventory
-            item.variant.stock_qty -= item.quantity
-            item.variant.save()
-
-        # 3. Clear Cart
-        cart.delete()
-
-        return Response({"message": "Order Successful!", "order_id": order.uid})
-
-
 # ========================================================================
 # 2. Stripe Order Section
 # ========================================================================
 
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])  
+def get_my_orders(request):
+
+    try:
+
+        orders = (
+            Order.objects.filter(
+                user=request.user,
+            )
+            .exclude(status="Pending")
+            .order_by("-created_at")
+        )
+
+        serializer = OrderSerializer(orders, many=True, context={"request": request})
+
+        return Response(serializer.data, status=200)
+
+    except Exception as e:
+        print(e)
+        return Response({"error": str(e)}, status=500)
 
 
 @api_view(["POST"])
@@ -446,118 +352,6 @@ def stripe_webhook(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def get_order_success_details(request, sid):
-
-    try:
-
-        session = stripe.checkout.Session.retrieve(sid)
-
-        metadata = getattr(session, "metadata", None)
-        order_id = getattr(metadata, "order_id", None)
-
-        if not order_id:
-            return Response(
-                {"success": "false", "error": "Order ID missing in Stripe Session"},
-                status=400,
-            )
-
-        order = Order.objects.get(uid=order_id, user=request.user)
-
-        return Response({"success": "true", "order": OrderSerializer(order).data})
-
-    except stripe.error.StripeError as e:
-        print("Stripe Error : ", e)
-        return Response({"error": "Invalid Session ID: " + str(e)}, status=400)
-    except Order.DoesNotExist:
-        return Response({"error": "Order not found for this session"}, status=404)
-    except Exception as e:
-        print("Order Error : ", e)
-        return Response({"success": "false", "error": str(e)}, status=500)
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_order_details(request, order_id):
-
-    try:
-
-        order = Order.objects.get(uid=order_id, user=request.user)
-
-        return Response({"success": "true", "order": OrderSerializer(order).data})
-
-    except Exception as e:
-
-        print("Order Error : ", e)
-        return Response({"success": "false", "error": str(e)}, status=500)
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])  # Sirf logged-in user apne orders dekh paye
-def get_my_orders(request):
-
-    try:
-
-        # 1. Logged-in user ke saare orders nikal lo (nawalest se oldest)
-        # prefetch_related: Isse N+1 query problem solve hoti hai, db calls kam hote hain
-        orders = (
-            Order.objects.filter(
-                user=request.user,
-            )
-            .exclude(status="Pending")
-            .order_by("-created_at")
-        )
-
-        # 2. Data ko Serializer mein daalo
-        serializer = OrderSerializer(orders, many=True, context={"request": request})
-
-        # 3. React ko bhej do!
-        return Response(serializer.data, status=200)
-
-    except Exception as e:
-        print(e)
-        return Response({"error": str(e)}, status=500)
-
-
-from django.template.loader import get_template
-from xhtml2pdf import pisa
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def download_invoice_pdf(request, order_id):
-
-    order = get_object_or_404(Order, uid=order_id, user=request.user)
-
-    total_mrp = 0
-    for item in order.items.all():
-        mrp = item.original_price if item.original_price else item.price
-        total_mrp += mrp * item.quantity
-
-    mrp_discount = total_mrp - order.subtotal()
-
-    template = get_template("invoice.html")
-
-    context = {"order": order, "total_mrp": total_mrp, "mrp_discount": mrp_discount}
-
-    html = template.render(context)
-    response = HttpResponse(content_type="application/pdf")
-
-    response["Content-Disposition"] = (
-        f'attachment; filename="Shopix_Invoice_{order.uid}.pdf'
-    )
-
-    pisa_status = pisa.CreatePDF(html, dest=response)
-
-    if pisa_status.err:
-        return HttpResponse(
-            "We had some errors generating your PDF <pre>" + html + "</pre>", status=500
-        )
-
-    return response
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def cancel_order(request, order_id):
 
     try:
@@ -668,3 +462,84 @@ def return_order(request, order_id):
         return Response({"error": "Order not found."}, status=404)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def get_order_success_details(request, sid):
+
+    try:
+
+        session = stripe.checkout.Session.retrieve(sid)
+
+        metadata = getattr(session, "metadata", None)
+        order_id = getattr(metadata, "order_id", None)
+
+        if not order_id:
+            return Response(
+                {"success": "false", "error": "Order ID missing in Stripe Session"},
+                status=400,
+            )
+
+        order = Order.objects.get(uid=order_id, user=request.user)
+
+        return Response({"success": "true", "order": OrderSerializer(order).data})
+
+    except stripe.error.StripeError as e:
+        print("Stripe Error : ", e)
+        return Response({"error": "Invalid Session ID: " + str(e)}, status=400)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found for this session"}, status=404)
+    except Exception as e:
+        print("Order Error : ", e)
+        return Response({"success": "false", "error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_order_details(request, order_id):
+
+    try:
+
+        order = Order.objects.get(uid=order_id, user=request.user)
+
+        return Response({"success": "true", "order": OrderSerializer(order).data})
+
+    except Exception as e:
+
+        print("Order Error : ", e)
+        return Response({"success": "false", "error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def download_invoice_pdf(request, order_id):
+
+    order = get_object_or_404(Order, uid=order_id, user=request.user)
+
+    total_mrp = 0
+    for item in order.items.all():
+        mrp = item.original_price if item.original_price else item.price
+        total_mrp += mrp * item.quantity
+
+    mrp_discount = total_mrp - order.subtotal()
+
+    template = get_template("invoice.html")
+
+    context = {"order": order, "total_mrp": total_mrp, "mrp_discount": mrp_discount}
+
+    html = template.render(context)
+    response = HttpResponse(content_type="application/pdf")
+
+    response["Content-Disposition"] = (
+        f'attachment; filename="Shopix_Invoice_{order.uid}.pdf'
+    )
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse(
+            "We had some errors generating your PDF <pre>" + html + "</pre>", status=500
+        )
+
+    return response

@@ -363,7 +363,7 @@ const CartPage = () => {
                                         <div className="p-5 lg:p-6 border-b border-gray-200">
                                             <h2 className="text-lg lg:text-xl font-semibold text-gray-800">
                                                 Order Summary
-                                            </h2>
+                                            </h2> 
                                         </div>
 
                                         <div className="p-5 lg:p-6 text-sm lg:text-base space-y-4">
@@ -457,6 +457,7 @@ const CartPage = () => {
                                                     </p>
                                                 </div>
                                             </div>
+                                            
                                         </div>
                                     </div>
 

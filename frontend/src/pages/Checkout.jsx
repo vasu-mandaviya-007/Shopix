@@ -1,12 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react'
 import { CartContext } from '../context/CartContext';
-import { Button, Fab, Radio, TextField } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button, Fab, Radio } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
-import { FaArrowLeft, FaArrowRight, FaBriefcase, FaCheck, FaHome, FaMinus, FaPlus, FaTag, FaTrash, FaTruck } from 'react-icons/fa';
+import { FaPlus, FaShieldAlt, FaTruck, FaUndo } from 'react-icons/fa';
 import { MdDelete } from "react-icons/md";
-import { FaAngleRight, FaPen, FaXmark } from 'react-icons/fa6';
-import { RiDiscountPercentLine } from "react-icons/ri";
+import {  FaCcAmex, FaCcMastercard, FaCcVisa, FaGooglePay, FaHeadset, FaPaypal, FaPen } from 'react-icons/fa6';
 import { PiSpinner } from 'react-icons/pi';
 
 import ConfirmDialog from '../components/UI/ConfirmDialog';
@@ -14,15 +13,10 @@ import { toast } from "react-toastify";
 import { formatPriceINR } from "../utils/formatPriceINR"
 import axios from 'axios';
 import { getAccess } from '../auth';
-import { ArrowBigRightDash } from 'lucide-react';
 import Stepper from '../components/Stepper';
 import { PatternFormat } from "react-number-format";
 import API_BASE_URL from '../config/config.js';
 
-import { loadStripe } from "@stripe/stripe-js";
-
-// const stripePromise = loadStripe('pk_test_51T3zrLEE4mQq25JrCrngVvrbX2Wm4VDm1QGyaMcfII7j2BTPEoAoI8ATDMVZfNqBtL5tpAwMlbDBG5N1F8OHuZtd00a30fl46o');
-const stripePromise = loadStripe('pk_test_51T45njCkj185qzEqO36RSkQxhBpjC4EragdEdDRxmvluF3hhxB9nylTRfoiVvlJijbAX90WWjj6rBkiBuCHAC90D00898b1LbH');
 
 const states = [
     {
@@ -79,7 +73,7 @@ const states = [
 
 const Checkout = () => {
 
-    const { cart, setCart } = useContext(CartContext);
+    const { cart, loading: cartLoading } = useContext(CartContext);
     const navigate = useNavigate();
 
     const [address, setAddress] = useState([])
@@ -100,40 +94,6 @@ const Checkout = () => {
         pincode: "",
         landmark: "",
     })
-
-    const handleCheckout = async () => {
-
-        try {
-
-            const token = getAccess()
-
-            const response = await axios.post(`${API_BASE_URL}/api/orders/checkout/`, {
-                email: "demo@gmail.com",
-                full_name: "vasu mandaviya",
-                address: "khamdhrol",
-                city: "junagadh",
-                postal_code: "123456"
-            }, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                }
-            })
-
-            if (response.data.success) {
-                setCart(response.data.cart)
-                console.log(response.data.cart)
-                toast.success("Order Placed.")
-            } else {
-                toast.error(response?.data?.error || "Failed to Order")
-            }
-
-        } catch (e) {
-            console.log(e)
-            toast.error("Failed to Order")
-        }
-
-    }
 
     useEffect(() => {
 
@@ -290,46 +250,104 @@ const Checkout = () => {
 
     const handlePayment = async () => {
         // const stripe = await stripePromise;
+        setLoading(true)
+        try {
 
-        const token = getAccess();
+            const token = getAccess();
 
-        const response = await fetch(`${API_BASE_URL}/api/orders/create-checkout-session/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                cartItems: cart.cart_items,
-                ...formData
-            })
-        });
+            const response = await fetch(`${API_BASE_URL}/api/orders/create-checkout-session/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    cartItems: cart.cart_items,
+                    ...formData
+                })
+            });
 
-        const data = await response.json();
-        // console.log(data)
+            const data = await response.json();
+            // console.log(data)
 
-        // redirect user to Stripe checkout
-        window.location.href = data.checkout_url;
+            // redirect user to Stripe checkout
+            window.location.href = data.checkout_url;
+        } catch (err) {
+            console.log(err)
+            toast.error("Failed to Initiate Payment")
+        } finally {
+            setTimeout(() => {
+                setLoading(false)
+            }, 2000);
+        }
 
     };
 
-    const proceedToPayment = () => {
-        // if (!selectedAddress) return alert("Please select an address first.");
+    useEffect(() => {
+        if (loading || cartLoading) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "auto";
+        }
 
-        // Navigate to payment page and pass the addressId securely via state
-        // navigate('/checkout/payment', { state: { addressId: selectedAddress } });
+        return () => {
+            document.body.style.overflow = "auto";
+        };
 
-        handlePayment();
-    };
+    }, [loading,cartLoading]);
 
+    useEffect(() => {
+        if (!cartLoading && (!cart || !cart.cart_items || cart.cart_items.length === 0)) {
+            navigate('/cart');
+        }
+    }, [cart, cartLoading, navigate]);
+
+    if (cartLoading) {
+
+        return (
+
+            <div className='min-h-screen'>
+
+                <div className="fixed inset-0 bg-white/60 z-9999 flex items-center justify-center">
+
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin mx-auto"></div>
+                        <p className="mt-4 text-gray-700 font-medium">Loading Your Order Details...</p>
+                    </div>
+                </div>
+
+            </div>
+        )
+
+    }
 
     return (
 
         <div className="container mx-auto px-4 py-8 ">
 
+            {loading && (
+                <div className="fixed inset-0 bg-white/60 z-9999 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin mx-auto"></div>
+                        <p className="mt-4 text-gray-700 font-medium">Processing...</p>
+                    </div>
+                </div>
+            )}
+
+            {/* {
+                cartLoading && (
+                    <div className="fixed inset-0 bg-white/60 z-9999 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin mx-auto"></div>
+                            <p className="mt-4 text-gray-700 font-medium">Loading Your Order Details...</p>
+                        </div>
+                    </div>
+                )
+            } */}
+
             <Stepper activeStep={2} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" >
 
                 <div className="lg:col-span-2 space-y-6">
 
@@ -387,7 +405,16 @@ const Checkout = () => {
 
                                                     {
                                                         selectedAddress === address.uid && (
-                                                            <Button onClick={proceedToPayment} variant="contained" color='warning' size='small' endIcon={<FaTruck className='text-sm!' />} className="mt-3!">
+                                                            <Button
+                                                                onClick={handlePayment}
+                                                                loading={loading}
+                                                                loadingPosition='end'
+                                                                variant="contained"
+                                                                color='warning'
+                                                                size='small'
+                                                                endIcon={<FaTruck className='text-sm!' />}
+                                                                className="mt-3!"
+                                                            >
                                                                 Deliver Here
                                                             </Button>
                                                         )
@@ -645,82 +672,71 @@ const Checkout = () => {
                                         <span className="font-semibold"> - {formatPriceINR(cart?.discount_amount)} </span>
                                     </div>
                                 )
-                                
+
                             }
 
                             <hr className="border-gray-200" />
 
-                            {/* Total */}
+
                             <div className="flex justify-between items-center text-lg">
                                 <span className="font-semibold text-gray-800">Total</span>
                                 <span className="font-bold text-xl text-primary-600"> {formatPriceINR(cart?.total_price)}</span>
                             </div>
 
-                            {/* Savings */}
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                <div className="flex items-center text-green-800">
-                                    <i className="fas fa-piggy-bank mr-2"></i>
-                                    <span className="text-sm">You saved $15.00 with free
-                                        shipping!</span>
-                                </div>
-                            </div>
 
-                            {/* Checkout Button */}
-                            {/* <Button onClick={handleCheckout} variant='contained' className='py-3!' endIcon={<ArrowBigRightDash />} fullWidth >Proceed to Checkout</Button> */}
-
-                            {/* Payment Methods */}
-                            <div className="text-center">
+                            <div className="text-center mt-6">
                                 <p className="text-sm text-gray-600 mb-3">
                                     We accept:
                                 </p>
                                 <div className="flex justify-center space-x-3">
-                                    <i className="fab fa-cc-visa text-2xl text-blue-600"></i>
-                                    <i className="fab fa-cc-mastercard text-2xl text-red-600"></i>
-                                    <i className="fab fa-cc-amex text-2xl text-green-600"></i>
-                                    <i className="fab fa-cc-paypal text-2xl text-blue-500"></i>
-                                    <i className="fab fa-apple-pay text-2xl text-gray-800"></i>
-                                    <i className="fab fa-google-pay text-2xl text-green-500"></i>
+                                    <FaCcVisa className='text-2xl text-blue-600' />
+                                    <FaCcMastercard className='text-2xl text-red-600' />
+                                    <FaCcAmex className='text-2xl text-green-600' />
+                                    <FaPaypal className='text-2xl text-blue-500' />
+                                    <FaGooglePay className='text-2xl text-green-500' />
                                 </div>
                             </div>
 
-                            {/* Trust Badges */}
+
                             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
                                 <div className="text-center">
-                                    <i className="fas fa-shield-alt text-2xl text-green-600 mb-2"></i>
+                                    <FaShieldAlt className="fas fa-shield-alt inline-flex text-2xl text-green-600 mb-2" />
                                     <p className="text-xs text-gray-600">
                                         Secure Payment
                                     </p>
                                 </div>
                                 <div className="text-center">
-                                    <i className="fas fa-truck text-2xl text-blue-600 mb-2"></i>
+                                    <FaTruck className="fas fa-truck inline-flex text-2xl text-blue-600 mb-2" />
                                     <p className="text-xs text-gray-600">
                                         Free Shipping
                                     </p>
                                 </div>
                                 <div className="text-center">
-                                    <i className="fas fa-undo text-2xl text-purple-600 mb-2"></i>
+                                    <FaUndo className="fas fa-undo inline-flex text-2xl text-purple-600 mb-2" />
                                     <p className="text-xs text-gray-600">
                                         Easy Returns
                                     </p>
                                 </div>
                                 <div className="text-center">
-                                    <i className="fas fa-headset text-2xl text-orange-600 mb-2"></i>
+                                    <FaHeadset className="fas fa-headset inline-flex text-2xl text-orange-600 mb-2" />
                                     <p className="text-xs text-gray-600">
                                         24/7 Support
                                     </p>
                                 </div>
                             </div>
+
                         </div>
+
                     </div>
 
                 </div>
 
-            </div>
+            </div >
 
         </div >
 
     )
 }
 
-export default Checkout
+export default Checkout 
 

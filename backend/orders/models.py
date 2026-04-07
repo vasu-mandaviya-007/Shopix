@@ -27,7 +27,7 @@ class Address(BaseModel):
         return f"{self.full_name} - {self.address_line}"
 
 
-class Order(BaseModel):
+class Order(BaseModel): 
 
     # Contact Info
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)

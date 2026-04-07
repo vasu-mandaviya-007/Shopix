@@ -16,7 +16,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     product_name = serializers.CharField(source="product.product.title", read_only=True)
     product_image = serializers.SerializerMethodField()
-    product = ProductListSerializer(read_only=True)
+    # product = ProductListSerializer(read_only=True)
     attribute_values = VariantAttributeValueSerializer(source="product.attribute_values", many=True, read_only=True)
     # total_price = serializers.ReadOnlyField()
     # product_image = serializers.CharField(source="product.image")
@@ -32,7 +32,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
             "original_price",
             "attribute_values",
             "total_price",
-            "product",
+            # "product",
         ]
 
     def get_product_image(self, obj):

@@ -59,7 +59,7 @@ const Hero = () => {
 
         loading
             ?
-            <div className="mb-20">
+            <div className="mb-20 mt-10">
 
                 <div className="flex flex-col lg:flex-row gap-6">
 
@@ -113,7 +113,7 @@ const Hero = () => {
 
                             <div
                                 style={{ backgroundImage: `url(${banner_bg})`, backgroundRepeat : "no-repeat" , backgroundSize : "cover" }}
-                                className={`w-full h-full flex flex-col-reverse md:flex-row items-center justify-between px-6 md:px-24`}
+                                className={`w-full h-full min-h-130 md:min-h-143 flex flex-col-reverse md:flex-row items-center justify-between px-6 md:px-24`}
                             >
 
                                 {/* TEXT & CTA SECTION (Left Template) */}
@@ -165,108 +165,6 @@ const Hero = () => {
                     ))}
                 </Swiper>
             </div>
-
-        // <div className="mb-20">
-
-        //     <div className="flex flex-col lg:flex-row gap-6">
-
-        //         <div className="w-full lg:w-2/3">
-
-        //             <Swiper
-        //                 slidesPerView={1}
-        //                 spaceBetween={30}
-        //                 loop={true}
-        //                 pagination={{ clickable: true }}
-        //                 navigation={{
-        //                     prevEl: prevRef.current,
-        //                     nextEl: nextRef.current
-        //                 }}
-        //                 onBeforeInit={(swiper) => {
-        //                     swiper.params.navigation.prevEl = prevRef.current;
-        //                     swiper.params.navigation.nextEl = nextRef.current;
-        //                 }}
-        //                 modules={[Pagination, Navigation]}
-        //                 className="mySwiper relative"
-        //             >
-        //                 <button ref={prevRef} className="custom-prev hidden! sm:flex!"><LiaAngleLeftSolid /></button>
-        //                 <button ref={nextRef} className="custom-next hidden! sm:flex!"><LiaAngleRightSolid /></button>
-
-        //                 {
-        //                     banners.map((banner, index) => (
-
-        //                         <SwiperSlide key={index} >
-
-        //                             <div className='relative h-full w-full overflow-hidden'>
-
-        //                                 <img src="./banner_bg.jpeg" className='w-full h-full object-cover' alt="" />
-
-        //                                 <div className='absolute max-w-[75%] sm:max-w-xs lg:max-w-lg scale-90 sm:scale-95 lg:scale-100 top-1/2 text-left flex flex-col left-0 py-5 ml-2 lg:pl-12 -translate-y-1/2'>
-
-        //                                     <span className='text-[#8a8a8a] font-semibold text-sm lg:text-[17px] mb-1 lg:mb-2.5'>{banner.tag}</span>
-
-        //                                     <h2 className='text-xl lg:text-3xl text-[#081828] font-bold line-clamp-1'>{banner?.title}</h2>
-
-        //                                     <p className='text-mobile-1 max-w-[35ch] lg:text-sm mt-2 lg:mt-5 text-[#888] line-clamp-1' dangerouslySetInnerHTML={{ __html: banner?.subtitle }}></p>
-
-        //                                     <h3 className='mt-1 lg:mt-5 text-base lg:text-2xl font-bold text-[#081828]'>
-        //                                         <span className='mr-3 font-semibold text-sm lg:text-base text-[#8a8a8a]'>Now Only:</span>
-        //                                         {formatPriceINR(banner?.price)}
-        //                                     </h3>
-
-        //                                     <Button variant='contained' className='mt-3! lg:mt-8! w-fit'>Shop Now</Button>
-
-        //                                 </div>
-
-        //                                 {/* <div className='relative p-1.25 h-full overflow-hidden w-full'> */}
-        //                                 {
-        //                                     banner?.display_variant?.images && (
-        //                                         <img src={banner?.display_variant?.images[0]?.image} className=' absolute top-1/2 right-10 -translate-y-1/2 max-h-90! max-w-90! ' alt="" />
-        //                                     )
-        //                                 }
-        //                                 {/* </div> */}
-
-        //                             </div>
-
-        //                         </SwiperSlide>
-
-        //                     ))
-        //                 }
-
-        //             </Swiper>
-        //         </div>
-
-
-        //         <div className="w-full lg:w-1/3 grid grid-cols-2 lg:grid-cols-1 gap-4">
-
-        //             <div className='flex items-center h-full bg-div'>
-        //                 <div className='p-3 lg:p-7'>
-        //                     <p className='font-medium text-mobile-1 lg:text-base text-gray-600'>New line required</p>
-        //                     <h3 className='font-bold text-mobile-1 lg:text-xl'>iPhone 12 Pro Max</h3>
-        //                     <span className='font-bold text-sm lg:text-xl text-primary-600'>₹49,999</span>
-        //                 </div>
-        //             </div>
-
-
-        //             <div
-        //                 className='bg-[#081828] flex items-center bg-cover bg-center'
-        //                 style={{ backgroundImage: "url(./small-banner-bg.png)" }}
-        //             >
-        //                 <div className='p-3 lg:p-7'>
-        //                     <h2 className='font-bold text-sm lg:text-xl text-white'>Weekly Sale!</h2>
-        //                     <p className='font-semibold lg:text-base text-9px text-white mt-1 lg:mt-3.5'>
-        //                         Saving up to 50% off all online store items this week.
-        //                     </p>
-        //                     <Button variant='contained' className='mt-2! max-sm:py-1! lg:mt-5! text-mobile-1! lg:text-base! bg-white text-primary-600 font-medium capitalize hover:bg-primary-700 hover:text-white'>
-        //                         Shop Now
-        //                     </Button>
-        //                 </div>
-        //             </div>
-
-        //         </div>
-
-        //     </div>
-
-        // </div>
 
     )
 }

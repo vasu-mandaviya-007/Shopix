@@ -8,8 +8,6 @@ from orders.models import Address
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ['user','first_name','last_name',"phone_number","profile_pic"]
 
-# admin.site.register(Profile)
-# admin.site.register(User)
-admin.site.register(Address)
+
 admin.site.register(EmailOTP)
 

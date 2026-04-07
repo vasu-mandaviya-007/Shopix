@@ -385,3 +385,63 @@ img {
   transform-origin: 0% 100%;
   background-color: #42a5f5; /* the main color  */
 }
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.5); /* Expand to 2.5 times size */
+    opacity: 0;
+  }
+}
+
+.ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(28, 235, 56, 0.463);
+  /* background: rgba(40, 167, 69, 0.6); */
+  /* border: 2px solid #4caf50; */
+  opacity: 0;
+  animation: ripple 2.5s infinite linear; /* Ripple lasts 2s, loops continuously, linear speed */
+  box-sizing: border-box; /* Ensure border is inside/correct size */
+  z-index: 0; /* Behind the checkmark */
+}
+
+.ripple1 {
+  animation-delay: 0s;
+}
+
+.ripple2 {
+  animation-delay: 1.25s; /* Offset delayed by 0.6s */
+}
+
+.ripple3 {
+  animation-delay: 2s; /* Offset delayed by 1.2s */
+}
+
+/* Keep existing keyframes as well */
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes scale {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+@keyframes fill {
+  100% {
+    box-shadow: inset 0px 0px 0px 40px #1dd423;
+  }
+}

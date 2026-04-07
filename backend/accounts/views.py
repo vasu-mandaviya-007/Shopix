@@ -16,8 +16,6 @@ from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from django.conf import settings
 from accounts.serializers import ProfileSerializer
-import requests
-from django.core.files.base import ContentFile
 import cloudinary.uploader
 
 class SendEmailOTP(APIView):
@@ -114,39 +112,6 @@ class VerifyEmailOTP(APIView):
             )
 
 
-# class GoogleLogin(APIView):
-#     def post(self, request):
-
-#         token = request.data.get("token")
-
-#         try:
-#             idinfo = id_token.verify_oauth2_token(
-#                 token,
-#                 google_requests.Request(),
-#                 settings.GOOGLE_CLIENT_ID,
-#                 clock_skew_in_seconds=10,
-#             )
-
-#             email = idinfo["email"]
-
-#             user, _ = User.objects.get_or_create(username=email, email=email)
-#             # defaults={"auth_provider": "google"}
-
-#             refresh = RefreshToken.for_user(user)
-
-#             return Response(
-#                 {
-#                     "access": str(refresh.access_token),
-#                     "refresh": str(refresh),
-#                     "user": {"email": user.email},
-#                 }
-#             )
-
-#         except Exception as e:
-#             print("Google Error : ", e)
-#             return Response({"error": "Invalid Google token"}, status=400)
-
-
 class GoogleLogin(APIView):
     def post(self, request):
         token = request.data.get("token")
@@ -164,12 +129,9 @@ class GoogleLogin(APIView):
             last_name = idinfo.get("family_name", "")
             picture_url = idinfo.get("picture", "")
 
-            # Pehle check karein ki kya is email se user exist karta hai
             user = User.objects.filter(email=email).first()
 
-            # Agar user nahi hai, toh naya banayein
             if not user:
-                # 🔥 FIX: Username aur Email dono mein seedha email pass kar diya!
                 user = User.objects.create(
                     username=email,
                     email=email,
@@ -180,7 +142,6 @@ class GoogleLogin(APIView):
                 user.set_unusable_password()
                 user.save()
 
-                # User bante hi uski Profile bhi bana dein
                 profile = Profile.objects.create(
                     user=user, first_name=first_name, last_name=last_name
                 )
@@ -199,7 +160,6 @@ class GoogleLogin(APIView):
                 except Exception as e:
                     print("Error While Saving Google Image : ", e)
 
-            # Token generate karein
             refresh = RefreshToken.for_user(user)
 
             return Response(
@@ -215,21 +175,6 @@ class GoogleLogin(APIView):
             return Response({"error": "Invalid Google token"}, status=400)
 
 
-# class ProfileView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         if request.user:
-
-#             data = Profile.objects.get(user=request.user)
-
-#             serializer = ProfileSerializer(data, context={"request": request})
-
-#             return Response({"user": serializer.data}, status=status.HTTP_200_OK)
-
-#         return Response({"error": "User Not Fond"})
-
-
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from .serializers import ProfileSerializer
@@ -237,13 +182,11 @@ from .serializers import ProfileSerializer
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated]  # Ensures only logged-in users can access
+    permission_classes = [IsAuthenticated] 
 
     def get_object(self):
         user = self.request.user
         
-        # 🚀 THE MAGIC FIX: get_or_create
-        # Agar profile hai toh le aao, nahi hai toh turant nayi bana do!
         profile, created = Profile.objects.get_or_create(user=user)
         
         return profile

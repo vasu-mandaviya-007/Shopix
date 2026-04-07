@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext } from 'react'
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 
 // Context APIs
@@ -18,7 +18,6 @@ import ProductListSkeleton from './components/skeleton/ProductListSkeleton'
 import AddVariant from './Admin/AddVariant'
 import AddProduct from './Admin/AddProduct'
 import Checkout from './pages/Checkout'
-import StripePaymentPage from './pages/StripePaymentPage'
 import CheckoutSuccess from './pages/CheckoutSuccess'
 import Footer from './components/Footer'
 import ShopPage from './pages/ShopPage'
@@ -33,10 +32,8 @@ import ScrollManager from './pages/ScrollManager'
 
 function App() {
 
-    const { authLoading } = useContext(AuthContext);
-
-
     return (
+        
         <BrowserRouter>
 
             <ScrollManager />
@@ -44,8 +41,6 @@ function App() {
             <CartProvider>
 
                 <Navbar />
-
-                {/* {authLoading && <div className='fixed w-full h-full z-50 bg-black'></div>} */}
 
                 <Routes>
 
@@ -85,8 +80,6 @@ function App() {
                     <Route path='/cart' element={<CartPage />} />
 
                     <Route path='/checkout/address' element={<Checkout />} />
-
-                    <Route path='/checkout/payment' element={<StripePaymentPage />} />
 
                     <Route path='/checkout/success' element={<CheckoutSuccess />} />
 
