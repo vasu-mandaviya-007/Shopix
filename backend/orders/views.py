@@ -129,20 +129,6 @@ def get_orders(request):
     return Response({"message": "All Orders"})
 
 
-# @api_view(["POST"])
-# def get_orders_by_side(request):
-
-#     session_id = request.data.get("session_id")
-#     orders = Order.objects.filter(session_id=session_id)
-
-#     if orders.exists():
-#         return Response(
-#             {"message": "All Orders", "orders": OrderSerializer(orders, many=True).data}
-#         )
-
-#     return Response({"message": "All Orders"})
-
-
 @api_view(["POST"])
 def create_order(request):
 
@@ -350,111 +336,6 @@ def create_checkout_session(request):
             return JsonResponse({"error": str(e)}, status=500)
 
 
-# @csrf_exempt
-# def stripe_webhook(request):
-
-#     payload = request.body
-#     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-#     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-
-#     try:
-#         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-#     except ValueError:
-#         return JsonResponse(
-#             {"status": "invalid payload"}, status=400
-#         )  # invalid payload
-#     except stripe.error.SignatureVerificationError:
-#         return JsonResponse(
-#             {"status": "invalid signature"}, status=400
-#         )  # invalid signature
-
-
-#     print(f"🔔 WEBHOOK RECEIVED: {event['type']}")
-
-#     event_type = str(event["type"]).strip()
-
-#     # ✅ payment completed event
-#     if event_type == "checkout.session.completed":
-
-#         session = event["data"]["object"]
-#         session_id = session.get("id")
-
-#         try:
-
-#             # Check if we already processed this exact payment
-#             # if Order.objects.filter(transaction_id=session_id).exists():
-#             #     print("Order already exists. Ignoring duplicate webhook.")
-#             #     return JsonResponse({"status": "already processed"}, status=200)
-
-#             print(f"✅ Complete Working")
-#             metadata = session.get("metadata", {})
-#             print(f"✅ Metadata Working {metadata}")
-
-#             user_id = metadata.get("user_id")
-#             order_id = metadata.get("order_id")
-#             print("No order id", order_id)
-
-#             if order_id:
-
-#                 try:
-
-#                     order = Order.objects.get(uid=order_id)
-#                     order.status = "Paid"
-#                     order.is_paid = True
-#                     # order.transaction_id = session_id
-#                     order.save()
-
-#                     print("✅ Order Placed Successfully ")
-
-#                     user_instance = None
-#                     if user_id:
-#                         try:
-#                             user_instance = User.objects.get(id=int(user_id))
-#                             cart = Cart.objects.filter(user=user_instance).first()
-#                             if cart:
-
-#                                 if cart.coupon:
-#                                     cart.coupon.used_by.add(user_instance)
-
-#                                 cart.cart_items.all().delete()
-#                                 cart.coupon = None
-#                                 cart.save()
-
-#                         except User.DoesNotExist:
-#                             print(f"User with ID {user_id} not found.")
-
-#                 except Order.DoesNotExist:
-#                     return JsonResponse({"status": "Order not found"}, status=404)
-
-#         except Exception as e:
-
-#             print(f"CRITICAL ERROR in webhook: {e}")
-
-#             # Tell Stripe: "Something broke, please try again later!"
-#             return JsonResponse({"error": "Failed to create order"}, status=500)
-
-#     elif event_type == "charge.refunded":
-#         charge = event["data"]["object"]
-#         payment_intent = charge.get("payment_intent")
-
-#         if payment_intent:
-#             try:
-#                 # Transaction ID se order dhoondein
-#                 order = Order.objects.get(transaction_id=payment_intent)
-#                 order.refund_status = "Completed"
-#                 order.save()
-
-#                 print(f"✅ Order {order.uid} marked as REFUND COMPLETED!")
-#             except Order.DoesNotExist:
-#                 pass
-
-#     else:
-#         # 🚩 YAHAN PATA CHALEGA KYU NAHI CHAL RAHA
-#         print(f"⚠️ Event type didn't match! Expected 'checkout.session.completed' but got '{event_type}'")
-
-#     return HttpResponse(status=200)
-
-
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
@@ -479,7 +360,6 @@ def stripe_webhook(request):
 
         # 🌟 FIX: Brackets [] ki jagah Dot (.) notation
         session = event.data.object
-        session_id = session.id
 
         try:
             print("✅ Complete Working (Inside Session Block)", flush=True)
@@ -492,8 +372,8 @@ def stripe_webhook(request):
             )
             print(f"✅ Metadata Working: {metadata}", flush=True)
 
-            user_id = getattr(metadata, 'user_id', None)
-            order_id = getattr(metadata, 'order_id', None)
+            user_id = getattr(metadata, "user_id", None)
+            order_id = getattr(metadata, "order_id", None)
 
             print(f"Order ID: {order_id} | User ID: {user_id}", flush=True)
 
@@ -502,9 +382,15 @@ def stripe_webhook(request):
                     order = Order.objects.get(uid=order_id)
                     order.status = "Paid"
                     order.is_paid = True
-                    # order.transaction_id = session_id  # Isey uncomment karna accha rahega DB record ke liye
-                    order.save()
 
+                    payment_intent_id = getattr(session, "payment_intent", None)
+                    if payment_intent_id:
+                        order.transaction_id = payment_intent_id
+                        print(
+                            f"✅ Payment Intent saved: {payment_intent_id}", flush=True
+                        )
+
+                    order.save()
                     print("✅ Order Placed Successfully", flush=True)
 
                     user_instance = None
@@ -550,7 +436,7 @@ def stripe_webhook(request):
                 order.save()
                 print(f"✅ Order {order.uid} marked as REFUND COMPLETED!", flush=True)
             except Order.DoesNotExist:
-                pass
+                print(f"⚠️ Refund event aagaya par Order match nahi hua", flush=True)
     else:
         print(f"⚠️ Unhandled event type ignored: '{event_type}'", flush=True)
 
@@ -558,106 +444,50 @@ def stripe_webhook(request):
     return JsonResponse({"status": "success"}, status=200)
 
 
-# @csrf_exempt
-# def stripe_webhook(request):
-#     payload = request.body
-#     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-#     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-
-#     try:
-#         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-#     except Exception as e:
-#         print(f"❌ Webhook Signature Error: {e}")
-#         return JsonResponse({"status": "invalid signature"}, status=400)
-
-#     print(f"🔔 WEBHOOK RECEIVED: {event['type']}")
-
-#     if event["type"] == "checkout.session.completed":
-#         session = event["data"]["object"]
-#         metadata = session.get("metadata", {})
-
-#         user_id = metadata.get("user_id")
-#         order_id = metadata.get("order_id")
-
-#         print(f"DEBUG: order_id={order_id}, user_id={user_id}")
-
-#         if not order_id:
-#             print("❌ ERROR: No order_id found in metadata!")
-#             return JsonResponse({"error": "No order_id in metadata"}, status=400)
-
-#         try:
-#             # Order update logic
-#             order = Order.objects.get(uid=order_id)
-#             order.status = "Paid"
-#             order.is_paid = True
-#             order.save()
-#             print(f"✅ Order {order_id} marked as Paid")
-
-#             # Cart clean logic
-#             if user_id:
-#                 try:
-#                     # Safely convert to int
-#                     u_id = int(user_id)
-#                     user_instance = User.objects.get(id=u_id)
-#                     cart = Cart.objects.filter(user=user_instance).first()
-
-#                     if cart:
-#                         if cart.coupon and user_id:
-#                             cart.coupon.used_by.add(
-#                                 user_instance
-#                             )  # Object pass karein, ID nahi
-
-#                         cart.cart_items.all().delete()
-#                         cart.coupon = None
-#                         cart.save()
-#                         print(f"🛒 Cart cleared for user {user_id}")
-#                 except (ValueError, User.DoesNotExist) as e:
-#                     print(f"⚠️ User/Cart Error: {e}")
-
-#             return HttpResponse(status=200)
-
-#         except Order.DoesNotExist:
-#             print(f"❌ ERROR: Order {order_id} not found in DB")
-#             return JsonResponse({"error": "Order not found"}, status=404)
-#         except Exception as e:
-#             print(f"💥 CRITICAL ERROR: {str(e)}")
-#             return JsonResponse({"error": str(e)}, status=500)
-
-#     # ... baaki events (refunded etc) ...
-
-#     return HttpResponse(status=200)
-
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def get_order_details_by_sid(request, sid):
+def get_order_details(request, sid):
 
     try:
 
-        order = Order.objects.get(transaction_id=sid, user=request.user)
+        sesstion = stripe.checkout.Session.retrieve(sid)
 
-        return Response({"success": "true", "order": OrderSerializer(order).data})
+        order_id = sesstion.metadata.get("order_id")
 
-    except Exception as e:
-
-        print("Order Error : ", e)
-        return Response({"success": "false", "error": str(e)}, status=500)
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_order_details(request, order_id):
-
-    try:
+        if not order_id:
+            return Response(
+                {"success": "false", "error": "Order ID missing in Stripe Session"},
+                status=400,
+            )
 
         order = Order.objects.get(uid=order_id, user=request.user)
 
         return Response({"success": "true", "order": OrderSerializer(order).data})
 
+    except stripe.error.StripeError as e:
+        print("Stripe Error : ", e)
+        return Response({"error": "Invalid Session ID: " + str(e)}, status=400)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found for this session"}, status=404)
     except Exception as e:
-
         print("Order Error : ", e)
         return Response({"success": "false", "error": str(e)}, status=500)
+
+
+# @api_view(["GET"])
+# @permission_classes([IsAuthenticated])
+# def get_order_details(request, order_id):
+
+#     try:
+
+#         order = Order.objects.get(uid=order_id, user=request.user)
+
+#         return Response({"success": "true", "order": OrderSerializer(order).data})
+
+#     except Exception as e:
+
+#         print("Order Error : ", e)
+#         return Response({"success": "false", "error": str(e)}, status=500)
 
 
 @api_view(["POST"])
@@ -745,24 +575,21 @@ def cancel_order(request, order_id):
             )
 
         if order.is_paid and order.transaction_id:
+
             try:
-                # Checkout session se 'payment_intent' nikalna padta hai refund ke liye
-                session = stripe.checkout.Session.retrieve(order.transaction_id)
-                payment_intent = session.payment_intent
+                
+                # Stripe Refund API call
+                refund = stripe.Refund.create(payment_intent=order.transaction_id)
 
-                if payment_intent:
-                    # Stripe Refund API call
-                    refund = stripe.Refund.create(payment_intent=payment_intent)
-
-                    # Refund processing state me daal do (Webhook isko baad me 'Completed' karega)
-                    # Agar aapne models.py me refund_status field banaya hai toh:
-                    if hasattr(order, "refund_status"):
-                        if refund.status == "succeeded":
-                            # Agar test mode me turant success ho gaya, toh sidha Completed mark karo
-                            order.refund_status = "Completed"
-                        else:
-                            # Agar bank time le raha hai, tabhi Processing me dalo (Webhook handle karega)
-                            order.refund_status = "Processing"
+                # Refund processing state me daal do (Webhook isko baad me 'Completed' karega)
+                # Agar aapne models.py me refund_status field banaya hai toh:
+                if hasattr(order, "refund_status"):
+                    if refund.status == "succeeded":
+                        # Agar test mode me turant success ho gaya, toh sidha Completed mark karo
+                        order.refund_status = "Completed"
+                    else:
+                        # Agar bank time le raha hai, tabhi Processing me dalo (Webhook handle karega)
+                        order.refund_status = "Processing"
 
             except stripe.error.StripeError as e:
                 # Agar Stripe me koi error aayi (jaise balance kam hona ya invalid id)
@@ -810,21 +637,18 @@ def return_order(request, order_id):
         # Asli company mein refund tab hota hai jab delivery boy item wapas le aata hai.
         # Par abhi project ke liye hum turant refund initiate kar rahe hain taaki UI test ho sake.
         if order.transaction_id:
+
             try:
-                session = stripe.checkout.Session.retrieve(order.transaction_id)
-                payment_intent = session.payment_intent
+                
+                refund = stripe.Refund.create(payment_intent=order.transaction_id)
 
-                if payment_intent:
-                    # Stripe Refund call
-                    refund = stripe.Refund.create(payment_intent=payment_intent)
-
-                    if hasattr(order, "refund_status"):
-                        if refund.status == "succeeded":
-                            # Agar test mode me turant success ho gaya, toh sidha Completed mark karo
-                            order.refund_status = "Completed"
-                        else:
-                            # Agar bank time le raha hai, tabhi Processing me dalo (Webhook handle karega)
-                            order.refund_status = "Processing"
+                if hasattr(order, "refund_status"):
+                    if refund.status == "succeeded":
+                        # Agar test mode me turant success ho gaya, toh sidha Completed mark karo
+                        order.refund_status = "Completed"
+                    else:
+                        # Agar bank time le raha hai, tabhi Processing me dalo (Webhook handle karega)
+                        order.refund_status = "Processing"
 
             except stripe.error.StripeError as e:
                 return Response({"error": f"Refund failed: {str(e)}"}, status=500)
