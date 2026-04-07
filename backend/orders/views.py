@@ -492,8 +492,9 @@ def stripe_webhook(request):
             )
             print(f"✅ Metadata Working: {metadata}", flush=True)
 
-            user_id = metadata.get("user_id")
-            order_id = metadata.get("order_id")
+            user_id = getattr(metadata, 'user_id', None)
+            order_id = getattr(metadata, 'order_id', None)
+
             print(f"Order ID: {order_id} | User ID: {user_id}", flush=True)
 
             if order_id:
