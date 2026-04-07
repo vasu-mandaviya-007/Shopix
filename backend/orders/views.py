@@ -446,13 +446,14 @@ def stripe_webhook(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def get_order_details(request, sid):
+def get_order_success_details(request, sid):
 
     try:
 
-        sesstion = stripe.checkout.Session.retrieve(sid)
+        session = stripe.checkout.Session.retrieve(sid)
 
-        order_id = sesstion.metadata.get("order_id")
+        metadata = getattr(session, "metadata", None)
+        order_id = getattr(metadata, "order_id", None)
 
         if not order_id:
             return Response(
@@ -474,20 +475,20 @@ def get_order_details(request, sid):
         return Response({"success": "false", "error": str(e)}, status=500)
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def get_order_details(request, order_id):
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_order_details(request, order_id):
 
-#     try:
+    try:
 
-#         order = Order.objects.get(uid=order_id, user=request.user)
+        order = Order.objects.get(uid=order_id, user=request.user)
 
-#         return Response({"success": "true", "order": OrderSerializer(order).data})
+        return Response({"success": "true", "order": OrderSerializer(order).data})
 
-#     except Exception as e:
+    except Exception as e:
 
-#         print("Order Error : ", e)
-#         return Response({"success": "false", "error": str(e)}, status=500)
+        print("Order Error : ", e)
+        return Response({"success": "false", "error": str(e)}, status=500)
 
 
 @api_view(["POST"])
@@ -577,7 +578,7 @@ def cancel_order(request, order_id):
         if order.is_paid and order.transaction_id:
 
             try:
-                
+
                 # Stripe Refund API call
                 refund = stripe.Refund.create(payment_intent=order.transaction_id)
 
@@ -639,7 +640,7 @@ def return_order(request, order_id):
         if order.transaction_id:
 
             try:
-                
+
                 refund = stripe.Refund.create(payment_intent=order.transaction_id)
 
                 if hasattr(order, "refund_status"):
