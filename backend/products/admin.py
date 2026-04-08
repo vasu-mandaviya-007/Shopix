@@ -66,7 +66,7 @@ class ProductAttributeAdmin(nested_admin.NestedModelAdmin):
 class BrandAdmin(admin.ModelAdmin):
     list_display = ["name", "slug"]
     prepopulated_fields = {"slug": ("name",)}
-    search_fields = ["name"]
+    # search_fields = ["name"]
 
 
 @admin.register(ProductImage)
@@ -190,7 +190,7 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
     list_filter = ["primary_category__name"]
     search_fields = ["title"]
     prepopulated_fields = {"slug": ("title",)}
-    autocomplete_fields = ["primary_category", "brand"]
+    # autocomplete_fields = ["primary_category", "brand"]
 
     # 🌟 MAGIC: Grouping fields into beautiful sections
     fieldsets = (

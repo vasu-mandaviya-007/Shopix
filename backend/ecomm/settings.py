@@ -11,8 +11,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("SECRET_KEY")
 
-# DEBUG = config("DEBUG", default=False, cast=bool)
-DEBUG = True
+DEBUG = config("DEBUG", default=False, cast=bool)
+# DEBUG = True
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="", cast=Csv())
 
@@ -52,23 +52,55 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to the Store Admin",
     "copyright": "Shopix",
     # "show_ui_builder": True,
-    "show_ui_builder": False,
+    # "show_ui_builder": False,
     "welcome_sign": "Welcome to the Shopix",
     "search_model": ["auth.User"],
     "topmenu_links": [
         # Url that gets reversed (Permissions can be added)
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
         # model admin to link to (Permissions checked against model)
+        {"name": "Visit Live Site", "url": "https://shopix-three.vercel.app", "new_window": True},
         {"model": "auth.User"},
         # App with dropdown menu to all its models pages (Permissions checked against models)
     ],
     "usermenu_links": [
         {"model": "auth.user"},
     ],
+    "hide_apps": ["auth.group"],
+    "hide_models": ["auth.group"],
     "related_modal_active": True,
     "custom_css": "css/admin_custom.css",
     "use_google_fonts_cdn": True,
-#     # "show_ui_builder": True,
+    # "show_ui_builder": True, 
+
+    # SideMenu Icons
+    "icons": {
+
+        "home": "bi bi-grid-1x2-fill",
+        "auth": "fas fa-users-cog",     # Auth App ka icon
+        "auth.user": "bi bi-person-circle",     # User model ka icon
+        "accounts.emailotp": "bi bi-envelope-arrow-down", # Product model ka icon
+        "accounts.profile": "bi bi-person-badge", # Product model ka icon
+
+        "products.product": "bi bi-box-seam", # Product model ka icon
+        "products.productvariant": "bi bi-boxes", # Product model ka icon
+        "products.brand": "fas fa-bookmark", # Product model ka icon
+        "products.productimage": "bi bi-image", # Product model ka icon
+
+        "categories.category": "fas fa-tags", 
+
+        "cart.cart": "fas fa-shopping-cart",
+        "cart.cartitems": "bi bi-box-seam",
+        "cart.coupon": "bi bi-ticket-perforated",
+
+        "orders.order": "fas fa-truck-fast",
+        "orders.orderitem": "bi bi-box-seam",
+        "orders.address": "fas fa-address-book",
+
+    },
+    # Agar kisi model ka icon na mile toh default ye use hoga
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
 }
 
 JAZZMIN_UI_TWEAKS = {
@@ -78,7 +110,6 @@ JAZZMIN_UI_TWEAKS = {
 # JAZZMIN_UI_TWEAKS = {
 #     "theme": "darkly",  # Instantly applies a beautiful dark mode theme
 # }
-
 
 
 # JAZZMIN_SETTINGS = {
