@@ -145,13 +145,22 @@ class ProductVariantAdmin(nested_admin.NestedModelAdmin):
     list_editable = ["price", "stock_qty", "is_default"] # Allows quick editing from the list view
     actions = [make_out_of_stock, apply_discount,export_variants_to_csv]
 
-    @admin.display(description="Inventory Health") # This becomes the column header
+    @admin.display(description="Inventory Health")
     def stock_status(self, obj):
+        # Agar galti se kisi product mein stock null/khali reh gaya ho
+        if obj.stock_qty is None:
+            return format_html('<span style="color: grey; font-weight: bold;">{}</span>', 'N/A')
+            
         if obj.stock_qty <= 0:
-            return format_html('<span style="color: red; font-weight: bold;">🚨 Out of Stock</span>')
+            # 🌟 Fix: Text ko as an argument '{}' mein pass kiya
+            return format_html('<span style="color: red; font-weight: bold;">{}</span>', '🚨 Out of Stock')
+            
         elif obj.stock_qty < 10:
+            # Yeh pehle bhi theek tha kyunki isme obj.stock_qty pass ho raha tha
             return format_html('<span style="color: orange; font-weight: bold;">⚠️ Low Stock ({})</span>', obj.stock_qty)
-        return format_html('<span style="color: green; font-weight: bold;">✅ Healthy</span>')
+            
+        # 🌟 Fix: Text ko as an argument '{}' mein pass kiya
+        return format_html('<span style="color: green; font-weight: bold;">{}</span>', '✅ Healthy')
 
     def variant_name(self, obj):
         values = obj.attribute_values.all()
