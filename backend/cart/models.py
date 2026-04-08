@@ -87,7 +87,7 @@ class Cart(BaseModel):
         return calculated_discount
 
     @property
-    def shipping_cost(self) : 
+    def shipping_cost(self) :  
         if self.subtotal > 10000 : 
             return Decimal(0)
         return Decimal(50)
@@ -99,7 +99,7 @@ class Cart(BaseModel):
     
     def __str__(self):
         return f"Cart of {self.user.username if self.user else 'Guest'} - {self.total_item} items"
-
+ 
 
 
 class CartItems(BaseModel):

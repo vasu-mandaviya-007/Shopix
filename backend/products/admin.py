@@ -2,6 +2,15 @@ from django.contrib import admin
 from django.utils.html import format_html
 import nested_admin
 
+# 🌟 Unfold Imports
+from unfold.admin import ModelAdmin, TabularInline, StackedInline
+from unfold.contrib.filters.admin import (
+    AutocompleteSelectFilter,
+    AutocompleteSelectMultipleFilter
+)
+
+from unfold.paginator import InfinitePaginator
+
 from products.models import (
     Product,
     ProductVariant,
@@ -17,11 +26,11 @@ from products.models import (
 # INLINES
 # -------------------------------------------------------------------
 
-class VariantAttributeValueInline(nested_admin.NestedStackedInline):
+class VariantAttributeValueInline(StackedInline):
     model = VariantAttributeValue
     extra = 1
 
-class ProductImageInline(nested_admin.NestedStackedInline):
+class ProductImageInline(StackedInline):
     model = ProductImage
     extra = 1
     readonly_fields = ["image_preview"]
@@ -36,20 +45,24 @@ class ProductImageInline(nested_admin.NestedStackedInline):
         return "-"
     image_preview.short_description = "Preview"
 
-class SpecificationItemInline(nested_admin.NestedTabularInline):
+class SpecificationItemInline(TabularInline):
     model = SpecificationItem
     extra = 1
+    
 
-class SpecificationGroupInline(nested_admin.NestedTabularInline):
+class SpecificationGroupInline(TabularInline):
     model = SpecificationGroup
     extra = 1
     inlines = [SpecificationItemInline]
+    tab = True
 
-class ProductVariantInline(nested_admin.NestedTabularInline):
+
+class ProductVariantInline(TabularInline):
     model = ProductVariant
-    extra = 0  # Changed to 0 so it doesn't clutter the Product page with empty variant forms initially
+    extra = 1  # Changed to 0 so it doesn't clutter the Product page with empty variant forms initially
     show_change_link = True
     inlines = [VariantAttributeValueInline, ProductImageInline]
+    tab = True
 
 
 # -------------------------------------------------------------------
@@ -57,20 +70,20 @@ class ProductVariantInline(nested_admin.NestedTabularInline):
 # -------------------------------------------------------------------
 
 @admin.register(ProductAttribute)
-class ProductAttributeAdmin(nested_admin.NestedModelAdmin):
+class ProductAttributeAdmin(ModelAdmin):
     list_display = ["uid", "name"]
     list_display_links = ["name"]
 
 
 @admin.register(Brand)
-class BrandAdmin(admin.ModelAdmin):
+class BrandAdmin(ModelAdmin):
     list_display = ["name", "slug"]
     prepopulated_fields = {"slug": ("name",)}
-    # search_fields = ["name"]
+    search_fields = ["name"]
 
 
 @admin.register(ProductImage)
-class ProductImageAdmin(admin.ModelAdmin):
+class ProductImageAdmin(ModelAdmin):
     list_display = ["variant", "image"]
     autocomplete_fields = ["variant"]
 
@@ -135,7 +148,7 @@ def export_variants_to_csv(modeladmin, request, queryset):
     return response
 
 @admin.register(ProductVariant)
-class ProductVariantAdmin(nested_admin.NestedModelAdmin):
+class ProductVariantAdmin(ModelAdmin):
     inlines = [VariantAttributeValueInline, ProductImageInline]
     search_fields = ["product__title", "sku"] # Assuming you might add SKU later
     list_filter = ["product__primary_category__name", "is_default"]
@@ -183,14 +196,27 @@ class ProductVariantAdmin(nested_admin.NestedModelAdmin):
 
 
 @admin.register(Product)
-class ProductAdmin(nested_admin.NestedModelAdmin):
-    inlines = [SpecificationGroupInline, ProductVariantInline]
-    list_display = ["uid", "title", "primary_category"]
+class ProductAdmin(ModelAdmin):
+
+    warn_unsaved_form = True 
+    change_form_show_cancel_button = True
+
+    inlines = [SpecificationGroupInline, ProductVariantInline] 
+    list_filter = (
+        # Autocomplete filter
+        ["brand", AutocompleteSelectFilter],
+        ["primary_category",AutocompleteSelectMultipleFilter]
+    )
+    list_display = ["title", "get_category_name","brand"]
     list_display_links = ["title"] 
-    list_filter = ["primary_category__name"]
     search_fields = ["title"]
     prepopulated_fields = {"slug": ("title",)}
-    # autocomplete_fields = ["primary_category", "brand"]
+    autocomplete_fields = ["primary_category", "brand"]
+    def get_category_name(self, obj):
+        return obj.primary_category.name
+    
+    get_category_name.short_description = "Category"
+    get_category_name.admin_order_field = "primary_category__name"
 
     # 🌟 MAGIC: Grouping fields into beautiful sections
     fieldsets = (
@@ -213,3 +239,15 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
             "description": "Settings for search engines and site visibility."
         }),
     )
+
+
+
+@admin.register(SpecificationItem)
+class SpecificationItemAdmin(ModelAdmin):
+    list_display = ["group", "name", "value"]
+    paginator = InfinitePaginator
+    show_full_result_count = False
+
+
+
+

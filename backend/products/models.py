@@ -56,7 +56,7 @@ class Product(BaseModel):
     def __str__(self):
         return self.title
 
-
+ 
 # 4. Product Variant
 
 

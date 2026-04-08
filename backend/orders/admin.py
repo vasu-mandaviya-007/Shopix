@@ -1,15 +1,20 @@
 from django.contrib import admin
-import nested_admin
+# 🌟 nested_admin hata kar Unfold imports lagaye
+from unfold.admin import ModelAdmin, TabularInline 
+
 from .models import Order, OrderItem
-import nested_admin
 from .models import Address 
 
-# Register your models here.
-admin.site.register(OrderItem)
-admin.site.register(Address)
+# 🌟 Unfold ModelAdmin apply kiya gaya hai
+admin.site.register(OrderItem, ModelAdmin)
 
 
-class OrderItemInline(nested_admin.NestedTabularInline):
+@admin.register(Address)
+class AddressAdmin(ModelAdmin): # 🌟 Changed to Unfold's ModelAdmin
+    readonly_fields = ("country",)
+
+
+class OrderItemInline(TabularInline): # 🌟 Changed to Unfold's TabularInline
     model = OrderItem
     extra = 0  # Faltu empty rows nahi dikhayega
     # Store owner galti se price ya quantity change na kar de isliye inko readonly kar sakte hain
@@ -17,7 +22,7 @@ class OrderItemInline(nested_admin.NestedTabularInline):
 
 
 @admin.register(Order)
-class OrderAdmin(nested_admin.NestedModelAdmin):
+class OrderAdmin(ModelAdmin): # 🌟 Changed to Unfold's ModelAdmin
 
     list_display = (
         "uid",
@@ -74,4 +79,5 @@ class OrderAdmin(nested_admin.NestedModelAdmin):
     #         },
     #     ),
     # )
+    
     list_display = ["uid", "user__email", "total_amount", "is_paid", "status"]

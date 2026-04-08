@@ -84,10 +84,12 @@ class Order(BaseModel):
 
         super().save(*args, **kwargs)
 
+    # def __str__(self):
+    #     return f"Order {self.uid} - {self.email}"
     def __str__(self):
-        return f"Order {self.uid} - {self.email}"
+        return f"Order {str(self.uid)[:5]}..."
 
-    def subtotal(self):
+    def subtotal(self): 
         return self.total_amount + self.discount_amount
 
 
