@@ -297,25 +297,25 @@ WSGI_APPLICATION = "ecomm.wsgi.application"
 
 
 # Local Database
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "ecomm_project",  # your database name
-        "USER": "ecommerce_admin",  # your database username
-        "PASSWORD": "vasu2005",  # your database password
-        "HOST": "localhost",  # leave as 'localhost' if running locally
-        "PORT": "5432",  # default PostgreSQL port
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "ecomm_project",  # your database name
+#         "USER": "ecommerce_admin",  # your database username
+#         "PASSWORD": "vasu2005",  # your database password
+#         "HOST": "localhost",  # leave as 'localhost' if running locally
+#         "PORT": "5432",  # default PostgreSQL port
+#     }
+# }
 
 # Neon Database
-# DATABASES = {
-#     "default": dj_database_url.config(
-#         default=os.environ.get("DATABASE_URL"),
-#         conn_max_age=600,
-#         conn_health_checks=True,
-#     )
-# }
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [
