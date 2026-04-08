@@ -11,8 +11,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("SECRET_KEY")
 
-DEBUG = config("DEBUG", default=False, cast=bool)
-# DEBUG = True
+# DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = True
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="", cast=Csv())
 
@@ -73,10 +73,10 @@ JAZZMIN_SETTINGS = {
 
 JAZZMIN_UI_TWEAKS = {
     "theme": "cosmo",  # Instantly applies a beautiful dark mode theme
+    "dark_mode_theme": "darkly",
 }
 # JAZZMIN_UI_TWEAKS = {
 #     "theme": "darkly",  # Instantly applies a beautiful dark mode theme
-#     "dark_mode_theme": "darkly",
 # }
 
 
