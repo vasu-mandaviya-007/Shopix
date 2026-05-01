@@ -723,8 +723,7 @@ def create_checkout_session(request):
                     "user_id": request.user.id,
                     "order_id": str(order.uid),
                 },
-                # "success_url": f"{settings.FRONTEND_URL}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}",
-                "success_url": f"http://localhost:5173/checkout/success?session_id={{CHECKOUT_SESSION_ID}}",
+                "success_url": f"{settings.FRONTEND_URL}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}",
                 "cancel_url": f"{settings.FRONTEND_URL}/cart",
             }
 
