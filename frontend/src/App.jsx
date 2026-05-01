@@ -29,6 +29,7 @@ import PrivateRoute from './routes/PrivateRoute'
 import MyAddresses from './pages/MyAddresses'
 import OrderDetails from './pages/OrderDetails'
 import ScrollManager from './pages/ScrollManager'
+import WishlistPage from './pages/WishlistPage'
 
 function App() {
 
@@ -77,7 +78,11 @@ function App() {
 
                     <Route path='/products/' element={<ShopPage />} />
 
+                    {/* <Route path='/cart2' element={<CartPage />} /> */}
+
                     <Route path='/cart' element={<CartPage />} />
+
+                    <Route path="/wishlist" element={<WishlistPage />} />
 
                     <Route path='/checkout/address' element={<Checkout />} />
 

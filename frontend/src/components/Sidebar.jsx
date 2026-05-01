@@ -96,7 +96,8 @@ const Sidebar = ({ isOpenMenu, setSearchParams, searchParams, setIsOpenMenu, slu
 
     return (
 
-        <div style={{ scrollbarWidth: "thin" }} className={`w-full md:w-70 bg-white shadow-xl top-20 h-[calc(100vh-88px)] p-4 border border-gray-100 overflow-y-auto fixed ${isOpenMenu ? "translate-x-0" : "-translate-x-full"} duration-300 left-0 z-10 md:z-1 md:translate-x-0 md:sticky md:block `}>
+        // <div style={{ scrollbarWidth: "thin" }} className={`w-full md:w-70 bg-white shadow-xl top-20 h-[calc(100vh-88px)] p-4 border border-gray-100 overflow-y-auto fixed ${isOpenMenu ? "translate-x-0" : "-translate-x-full"} duration-300 left-0 z-10 md:z-1 md:translate-x-0 md:sticky md:block `}>
+        <div style={{ scrollbarWidth: "thin" }} className={`w-full md:w-65 lg:w-60 xl:w-70 bg-white shadow-xl top-16 lg:top-20 h-screen md:h-[calc(100vh-88px)] p-4 border border-gray-100 overflow-y-auto fixed ${isOpenMenu ? "translate-x-0" : "-translate-x-full"} duration-300 left-0 z-10 lg:z-1 lg:translate-x-0 lg:sticky lg:block `}>
 
             <div className='relative'>
 
@@ -108,7 +109,7 @@ const Sidebar = ({ isOpenMenu, setSearchParams, searchParams, setIsOpenMenu, slu
 
                         <h3 className="font-bold text-lg ">Filters</h3>
 
-                        <IconButton color='error' className='block md:hidden!' size='small' onClick={() => setIsOpenMenu(!isOpenMenu)}>
+                        <IconButton color='error' className='block lg:hidden!' size='small' onClick={() => setIsOpenMenu(!isOpenMenu)}>
                             <FaXmark />
                         </IconButton>
 

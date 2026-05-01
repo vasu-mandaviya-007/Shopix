@@ -1,0 +1,5 @@
+/* Fix for stacked Django related-widget wrapper icons */
+.related-widget-wrapper-link {
+    display: inline-block !important;
+    margin-right: 10px;
+}

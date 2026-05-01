@@ -17,6 +17,8 @@ from google.auth.transport import requests as google_requests
 from django.conf import settings
 from accounts.serializers import ProfileSerializer
 import cloudinary.uploader
+from django.contrib.auth.models import update_last_login
+
 
 class SendEmailOTP(APIView):
 
@@ -28,11 +30,8 @@ class SendEmailOTP(APIView):
                 return Response({"error": "Please enter your email"}, status=400)
 
             otp = str(random.randint(100000, 999999))
-            old_otp = EmailOTP.objects.filter(email=email)
 
-            if old_otp:
-                for o in old_otp:
-                    o.delete()
+            EmailOTP.objects.filter(email=email).delete()
 
             EmailOTP.objects.create(email=email, otp=otp)
 
@@ -45,7 +44,9 @@ class SendEmailOTP(APIView):
 
 
 class VerifyEmailOTP(APIView):
+
     def post(self, request):
+
         try:
 
             with transaction.atomic():
@@ -82,7 +83,14 @@ class VerifyEmailOTP(APIView):
                 user, created = User.objects.get_or_create(email=email, username=email)
 
                 if created:
-                    Profile.objects.create(user=user)
+                    profile = Profile.objects.get_or_create(user=user)
+                else : 
+                    profile = user.profile
+
+                profile.email_verified = True
+                profile.save()
+
+                update_last_login(None, user)
 
                 refresh = RefreshToken.for_user(user)
                 otp_obj.delete()
@@ -90,7 +98,7 @@ class VerifyEmailOTP(APIView):
                 return Response(
                     {
                         "message": (
-                            "Register Siccessfully" if created else "Login Successfully"
+                            "Register Successfully" if created else "Login Successfully"
                         ),
                         "access": str(refresh.access_token),
                         "refresh": str(refresh),
@@ -121,13 +129,14 @@ class GoogleLogin(APIView):
                 token,
                 google_requests.Request(),
                 settings.GOOGLE_CLIENT_ID,
-                clock_skew_in_seconds=10,
+                clock_skew_in_seconds=30,
             )
 
             email = idinfo["email"]
             first_name = idinfo.get("given_name", "")
             last_name = idinfo.get("family_name", "")
             picture_url = idinfo.get("picture", "")
+            is_google_verified = idinfo.get("email_verified", False)
 
             user = User.objects.filter(email=email).first()
 
@@ -142,17 +151,24 @@ class GoogleLogin(APIView):
                 user.set_unusable_password()
                 user.save()
 
-                profile = Profile.objects.create(
-                    user=user, first_name=first_name, last_name=last_name
-                )
+                profile, _ = Profile.objects.get_or_create(user=user)
+
             else:
-                profile = Profile.objects.filter(user=user).first()
+                profile, _ = Profile.objects.get_or_create(user=user)
+
+            if is_google_verified:
+                profile.email_verified = True
+                profile.save()
+
+            update_last_login(None, user)
 
             if profile and picture_url and not profile.profile_pic:
 
                 try:
 
-                    upload_result = cloudinary.uploader.upload(picture_url, folder="ecommerce/profile_pics")
+                    upload_result = cloudinary.uploader.upload(
+                        picture_url, folder="ecommerce/profile_pics"
+                    )
 
                     profile.profile_pic = upload_result["public_id"]
                     profile.save()
@@ -182,11 +198,11 @@ from .serializers import ProfileSerializer
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         user = self.request.user
-        
+
         profile, created = Profile.objects.get_or_create(user=user)
-        
+
         return profile

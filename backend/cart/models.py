@@ -1,7 +1,8 @@
+from django.utils import timezone
 from django.db import models
 from base.models import BaseModel
 from django.contrib.auth.models import User
-from products.models import ProductVariant
+from products.models import Product, ProductVariant
 from decimal import Decimal
 from django.forms import model_to_dict
 # Create your models here.
@@ -10,7 +11,7 @@ class Coupon(BaseModel):
     coupon_code = models.CharField(max_length=10,unique=True)
     is_active = models.BooleanField(default=True)
 
-    discount_percentage = models.IntegerField(
+    discount_percentage = models.IntegerField( 
         help_text="enter discount % like 10 for 10% off" 
     )
 
@@ -27,13 +28,31 @@ class Coupon(BaseModel):
     min_quantity = models.PositiveIntegerField(default=0)
     min_amount = models.DecimalField(max_digits=10,decimal_places=2,null=True, blank=True, default=0)
 
-    max_uses = models.PositiveIntegerField(
+    max_uses = models.PositiveIntegerField( 
         null=True, blank=True, 
         help_text="Total number of times this coupon can be used globally"
     )
     used_count = models.PositiveIntegerField(default=0, help_text="How many times it has already been used")
 
     used_by = models.ManyToManyField(User,blank=True,related_name="used_coupons")
+
+    @property
+    def is_valid_now(self):
+        now = timezone.now()
+        # Check 1: Kya admin ne manually off kiya hai?
+        if not self.is_active:
+            return False
+        # Check 2: Kya limit khatam ho gayi hai?
+        if self.max_uses and self.used_count >= self.max_uses:
+            return False
+        # Check 3: Kya date expire ho gayi hai?
+        if self.valid_to and now > self.valid_to:
+            return False
+        # Check 4: Kya abhi valid hona shuru hua hai?
+        if self.valid_from and now < self.valid_from:
+            return False
+            
+        return True
 
     def __str__(self):
         return self.coupon_code
@@ -48,7 +67,7 @@ class Cart(BaseModel):
         Coupon, on_delete=models.SET_NULL, related_name="coupon", null=True, blank=True
     )
 
-    @property
+    @property 
     def total_item(self) : 
         return sum(item.quantity for item in self.cart_items.all())
     
@@ -119,3 +138,18 @@ class CartItems(BaseModel):
     def __str__(self):
         return f"{self.variant} - {self.quantity}"
     
+
+
+# User = get_user_model()
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlist')
+    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE) # 🌟 NAYA CHANGED FIELD
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # Ek user ek hi variant ko dobara add na kare
+        unique_together = ('user', 'variant')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.variant.uid}"

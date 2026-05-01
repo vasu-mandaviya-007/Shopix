@@ -11,12 +11,13 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = '__all__'  
+        fields = '__all__'   
 
     def get_full_name(self,obj) : 
         return obj.get_full_name()
     
     def get_category_image(self, obj):
+        
         return obj.category_image.url
 
     def get_children(self,obj) : 

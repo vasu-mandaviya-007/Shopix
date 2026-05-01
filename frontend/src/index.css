@@ -12,247 +12,249 @@
 @source "../../../**/*.{html,py,js}";
 
 @theme {
-  --text-1px: 1px;
-  --text-2px: 2px;
-  --text-3px: 3px;
-  --text-4px: 4px;
-  --text-5px: 5px;
-  --text-6px: 6px;
-  --text-7px: 7px;
-  --text-8px: 8px;
-  --text-9px: 9px;
-  --text-mobile-1: 10px;
-  --text-mobile-2: 11px;
-  --text-mobile-3: 12px;
-  --text-fluid-sm: clamp(11px, 1.5vw, 14px);
+    --text-1px: 1px;
+    --text-2px: 2px;
+    --text-3px: 3px;
+    --text-4px: 4px;
+    --text-5px: 5px;
+    --text-6px: 6px;
+    --text-7px: 7px;
+    --text-8px: 8px;
+    --text-9px: 9px;
+    --text-mobile-1: 10px;
+    --text-mobile-2: 11px;
+    --text-mobile-3: 12px;
+    --text-fluid-sm: clamp(11px, 1.5vw, 14px);
 
-  --shadow-box: 0 0 10px 2px rgba(0, 0, 0, 0.04);
-  --color-bg-primary: #f1f3f6;
-  --color-primary: #1976d2;
-  --color-primary-hover: #1565c0;
+    --shadow-box: 0 0 10px 2px rgba(0, 0, 0, 0.04);
+    --color-bg-primary: #f1f3f6;
+    --color-primary: #1976d2;
+    --color-primary-hover: #1565c0;
 
-  --color-primary-50: #eff6ff;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  /* --variant-outlinedBorder : #1976d2; */
+    --color-primary-50: #eff6ff;
+    --color-primary-500: #3b82f6;
+    --color-primary-600: #2563eb;
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
+    --color-primary-900: #1e3a8a;
+    /* --variant-outlinedBorder : #1976d2; */
 
-  --mui-buttuon-primary: #1976d2;
-  --variant-outlinedBg: #1976d20a;
-  --variant-outlinedBorder: #1976d2;
-  --variant-outlinedColor: #1976d2;
+    --mui-buttuon-primary: #1976d2;
+    --variant-outlinedBg: #1976d20a;
+    --variant-outlinedBorder: #1976d2;
+    --variant-outlinedColor: #1976d2;
 
-  --color-mui-contained-primary: #1976d2;
-  --color-mui-contained-primary-hover: #1976d2;
+    --color-mui-contained-primary: #1976d2;
+    --color-mui-contained-primary-hover: #1976d2;
 
-  --color-mui-contained-secondary: #9c27b0;
-  --color-mui-contained-secondary-hover: #7b1fa2;
+    --color-mui-contained-secondary: #9c27b0;
+    --color-mui-contained-secondary-hover: #7b1fa2;
 }
 
 #root {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 body {
-  font-size: 15px;
-  font-family: "Inter", sans-serif;
-  background-color: white;
+    font-size: 15px;
+    font-family: "Inter", sans-serif;
+    background-color: white;
 }
 
 :root {
-  --mui-contained-primary: #1976d2;
-  --mui-contained-primary-hover: #1565c0;
+    --mui-contained-primary: #1976d2;
+    --mui-contained-primary-hover: #1565c0;
 
-  --mui-contained-secondary: #9c27b0;
-  --mui-contained-secondary-hover: #7b1fa2;
+    --mui-contained-secondary: #9c27b0;
+    --mui-contained-secondary-hover: #7b1fa2;
 
-  --mui-contained-success: #4caf50;
-  --mui-contained-success-hover: #388e3c;
+    --mui-contained-success: #4caf50;
+    --mui-contained-success-hover: #388e3c;
 
-  --mui-contained-danger: #f44336;
-  --mui-contained-danger-hover: #d32f2f;
+    --mui-contained-danger: #f44336;
+    --mui-contained-danger-hover: #d32f2f;
 }
 
 /* Custom animation */
 @keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Utility class */
 @utility animate-scaleIn {
-  animation: scaleIn 0.2s ease-out;
+    animation: scaleIn 0.2s ease-out;
 }
 
-@media (width >= 96rem) {
-  .container {
-    max-width: 88rem;
-  }
+@media (width >=96rem) {
+    .container {
+        max-width: 88rem;
+    }
 }
 
 .mySwiper {
-  /* height: 600px; */
-  position: relative;
-  overflow: hidden;
+    /* height: 600px; */
+    position: relative;
+    overflow: hidden;
 }
 
 /* Hide buttons initially */
 .custom-prev,
 .custom-next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
-  /* padding: 14px; */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100px;
-  width: 45px;
-  border-radius: 10px;
-  cursor: pointer;
-  z-index: 90;
-  transition: all 0.3s ease;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    /* padding: 14px; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    width: 45px;
+    border-radius: 10px;
+    cursor: pointer;
+    z-index: 90;
+    transition: all 0.3s ease;
 }
 
 .custom-next:hover,
 .custom-prev:hover {
-  background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .custom-prev {
-  border-radius: 0 5px 5px 0;
-  left: -100px;
+    border-radius: 0 5px 5px 0;
+    left: -100px;
 }
 
 .custom-next {
-  border-radius: 5px 0 0 5px;
-  right: -100px;
+    border-radius: 5px 0 0 5px;
+    right: -100px;
 }
 
 /* Show buttons on hover */
 .mySwiper:hover .custom-prev {
-  pointer-events: auto;
-  left: 0px;
+    pointer-events: auto;
+    left: 0px;
 }
+
 .mySwiper:hover .custom-next {
-  right: 0px;
-  pointer-events: auto;
+    right: 0px;
+    pointer-events: auto;
 }
 
 .swiper {
-  width: 100%;
-  /* height: 100%; */
+    width: 100%;
+    /* height: 100%; */
 }
 
 .swiper-slide {
-  text-align: center;
-  font-size: 18px;
-  background: #444;
-  overflow: hidden;
+    text-align: center;
+    font-size: 18px;
+    background: #444;
+    overflow: hidden;
 
-  /* Center slide text vertically */
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    /* Center slide text vertically */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .swiper-slide img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .swiper {
-  margin-left: auto;
-  margin-right: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .bg-div {
-  background: url("https://demo.graygrids.com/themes/shopgrids/assets/images/hero/slider-bnr.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  /* background-position: right; */
+    background: url("https://demo.graygrids.com/themes/shopgrids/assets/images/hero/slider-bnr.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    /* background-position: right; */
 }
 
 img {
-  max-width: none;
-  max-height: none;
+    max-width: none;
+    max-height: none;
 }
 
 .tab-button.active {
-  @apply border-primary-600 text-primary-600;
+    @apply border-primary-600 text-primary-600;
 }
 
 /* OTP Input Page Design */
 .out-input {
-  min-width: 43px;
-  min-height: 43px;
-  border: none;
-  outline: 2px solid #808080;
-  border-radius: 3px;
+    min-width: 43px;
+    min-height: 43px;
+    border: none;
+    outline: 2px solid #808080;
+    border-radius: 3px;
 }
 
 .out-input:focus {
-  outline: 2px solid #00a4d6;
+    outline: 2px solid #00a4d6;
 }
 
 /* Product Details Page css */
 
 /* Product image */
-.product-image > div > img {
-  max-width: 500px !important;
-  max-height: 500px !important;
+.product-image>div>img {
+    max-width: 500px !important;
+    max-height: 500px !important;
 }
 
 /* Cateogory Page CSS */
 
 .category-box:hover {
-  color: white;
+    color: white;
 }
 
 .category-box:hover .category-overlay::before {
-  transform: rotateX(0deg);
+    transform: rotateX(0deg);
 }
 
 .category-box:hover .category-overlay {
-  opacity: 1;
+    opacity: 1;
 }
 
 .category-overlay {
-  transition: opacity 0.3s ease-in-out;
-  opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
 }
 
 .category-overlay::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: rotateX(90deg);
-  width: 100%;
-  height: 100%;
-  transition: transform 0.3s ease-in-out;
-  background: rgba(0, 0, 0, 0.5);
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotateX(90deg);
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease-in-out;
+    background: rgba(0, 0, 0, 0.5);
 }
 
 /* Add Category Popup Css */
 
 .category-popup .css-16htz67-MuiPaper-root-MuiDialog-paper {
-  overflow-y: unset !important;
+    overflow-y: unset !important;
 }
 
 /* Checkout page CSS  */
@@ -338,110 +340,145 @@ img {
 } */
 
 .scrollbar-hidden::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 @utility animate-fill {
-  width: 0;
-  animation: fill 1s ease-out forwards;
+    width: 0;
+    animation: fill 1s ease-out forwards;
 }
 
 @keyframes fill {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 100%;
+    }
 }
 
-/* HTML: <div class="ribbon">Your text content</div> */
 .ribbon {
-  font-size: 18px;
-  font-weight: bold;
-  color: #fff;
-}
-.ribbon {
-  --f: 0.4em; /* control the folded part */
+    --f: 0.3em;
+    /* control the folded part */
 
-  position: absolute;
-  top: 0;
-  right: 0;
-  line-height: 1.8;
-  padding-inline: 1lh;
-  padding-bottom: var(--f);
-  border-image: conic-gradient(#0008 0 0) 51% / var(--f);
-  clip-path: polygon(
-    100% calc(100% - var(--f)),
-    100% 100%,
-    calc(100% - var(--f)) calc(100% - var(--f)),
-    var(--f) calc(100% - var(--f)),
-    0 100%,
-    0 calc(100% - var(--f)),
-    999px calc(100% - var(--f) - 999px),
-    calc(100% - 999px) calc(100% - var(--f) - 999px)
-  );
-  transform: translate(calc((1 - cos(45deg)) * 100%), -100%) rotate(45deg);
-  transform-origin: 0% 100%;
-  background-color: #42a5f5; /* the main color  */
+    position: absolute;
+    top: 0;
+    right: 0;
+    line-height: 1.8;
+    padding-inline: 1lh;
+    padding-bottom: var(--f);
+    border-image: conic-gradient(#0008 0 0) 51% / var(--f);
+    clip-path: polygon(100% calc(100% - var(--f)),
+            100% 100%,
+            calc(100% - var(--f)) calc(100% - var(--f)),
+            var(--f) calc(100% - var(--f)),
+            0 100%,
+            0 calc(100% - var(--f)),
+            999px calc(100% - var(--f) - 999px),
+            calc(100% - 999px) calc(100% - var(--f) - 999px));
+    transform: translate(calc((1 - cos(45deg)) * 100%), -100%) rotate(45deg);
+    transform-origin: 0% 100%;
+    background-color: #42a5f5;
+
+    /* Responsive font size */
+    font-size: clamp(10px, 2.5vw, 18px);
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+    .ribbon {
+        --f: 0.25em;
+        font-size: 10px;
+        line-height: 1.6;
+    }
+}
+
+/* Tablets */
+@media (min-width: 481px) and (max-width: 768px) {
+    .ribbon {
+        --f: 0.3em;
+        font-size: 13px;
+    }
+}
+
+/* Desktops */
+@media (min-width: 769px) {
+    .ribbon {
+        --f: 0.4em;
+        font-size: 18px;
+    }
 }
 
 @keyframes ripple {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(2.5); /* Expand to 2.5 times size */
-    opacity: 0;
-  }
+    0% {
+        transform: scale(0.8);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(2.5);
+        /* Expand to 2.5 times size */
+        opacity: 0;
+    }
 }
 
 .ripple {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: rgba(28, 235, 56, 0.463);
-  /* background: rgba(40, 167, 69, 0.6); */
-  /* border: 2px solid #4caf50; */
-  opacity: 0;
-  animation: ripple 2.5s infinite linear; /* Ripple lasts 2s, loops continuously, linear speed */
-  box-sizing: border-box; /* Ensure border is inside/correct size */
-  z-index: 0; /* Behind the checkmark */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(28, 235, 56, 0.463);
+    /* background: rgba(40, 167, 69, 0.6); */
+    /* border: 2px solid #4caf50; */
+    opacity: 0;
+    animation: ripple 2.5s infinite linear;
+    /* Ripple lasts 2s, loops continuously, linear speed */
+    box-sizing: border-box;
+    /* Ensure border is inside/correct size */
+    z-index: 0;
+    /* Behind the checkmark */
 }
 
 .ripple1 {
-  animation-delay: 0s;
+    animation-delay: 0s;
 }
 
 .ripple2 {
-  animation-delay: 1.25s; /* Offset delayed by 0.6s */
+    animation-delay: 1.25s;
+    /* Offset delayed by 0.6s */
 }
 
 .ripple3 {
-  animation-delay: 2s; /* Offset delayed by 1.2s */
+    animation-delay: 2s;
+    /* Offset delayed by 1.2s */
 }
 
 /* Keep existing keyframes as well */
 @keyframes stroke {
-  100% {
-    stroke-dashoffset: 0;
-  }
+    100% {
+        stroke-dashoffset: 0;
+    }
 }
+
 @keyframes scale {
-  0%,
-  100% {
-    transform: none;
-  }
-  50% {
-    transform: scale3d(1.1, 1.1, 1);
-  }
+
+    0%,
+    100% {
+        transform: none;
+    }
+
+    50% {
+        transform: scale3d(1.1, 1.1, 1);
+    }
 }
+
 @keyframes fill {
-  100% {
-    box-shadow: inset 0px 0px 0px 40px #1dd423;
-  }
+    100% {
+        box-shadow: inset 0px 0px 0px 40px #1dd423;
+    }
 }

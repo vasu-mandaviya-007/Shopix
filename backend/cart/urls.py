@@ -10,13 +10,17 @@ from .views import (
     clear_cart,
     apply_coupon,
     remove_coupon,
+    wishlist_view,
+    check_wishlist_status,
 )
 
-urlpatterns = [
+urlpatterns = [ 
     path("", get_cart),
+    path('wishlist/', wishlist_view, name='wishlist'),
+    path('wishlist/check/<str:variant_id>/', check_wishlist_status, name='check-wishlist'),
     path("add-to-cart/", add_to_cart),
-    path("remove-from-cart/", remove_from_cart),
-    path("update-quantity/", update_quantity),
+    path("remove-from-cart/", remove_from_cart), 
+    path("update-quantity/", update_quantity), 
     path("merge-cart/", merge_cart),
     path("clear-cart/", clear_cart),
     path("apply-coupon/", apply_coupon),

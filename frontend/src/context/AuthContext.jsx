@@ -74,10 +74,22 @@ export const AuthProvider = ({ children }) => {
             console.log(data)
 
         } catch (err) {
-            console.log("Auth failed:", err.message);
-            console.log(err)
-            // logout();
-            setUser(null);
+            
+            console.error("Fetch User failed:", err.message);
+            
+            // 🔥 FIX: Error check karo. Kya Auth fail hua hai ya Backend band hai?
+            if (err.message === "Unauthenticated") {
+                // Sirf tabhi tokens delete karo jab 100% confirm ho ki token/user invalid hai
+                console.log("Invalid session, Logging out...");
+                logout();
+            } else {
+                console.log("Server Not Running");
+                
+                setUser(null); 
+                
+                // Pro-tip: Aap yahan ek state set kar sakte hain jaise setBackendDown(true) 
+                // aur UI me ek banner dikha sakte hain "Server is currently unreachable".
+            }
 
         } finally {
             setAuthLoading(false);

@@ -1,0 +1,125 @@
+{% extends "admin/change_list.html" %}
+
+{% block date_hierarchy %}
+    <div class="mb-6 mt-4 p-4 border-b border-gray-200 dark:border-gray-700 w-full block overflow-x-auto">
+        <nav class="flex flex-wrap -mb-px gap-6 whitespace-nowrap">
+            
+            <a href="?" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if not request.GET.status %} border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-500 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                All
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if not request.GET.status %} bg-primary-100 text-primary-700 dark:bg-blue-900/40! border border-blue-400 dark:border-blue-700 dark:text-primary-400 {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_all }}
+                </span>
+            </a>
+
+            <a href="?status=Pending" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if request.GET.status == 'Pending' %} border-yellow-500 text-yellow-600 dark:border-yellow-500 dark:text-yellow-400 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                Pending
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if request.GET.status == 'Pending' %} bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 border border-yellow-400 dark:border-yellow-700 dark:text-yellow-300 {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_pending }}
+                </span>
+            </a>
+
+            <a href="?status=Paid" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if request.GET.status == 'Paid' %} border-purple-500 text-purple-600 dark:border-purple-500 dark:text-purple-400 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                Paid (To Pack)
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if request.GET.status == 'Paid' %} bg-purple-100 text-purple-700 dark:bg-purple-900/40 border border-purple-400 dark:border-purple-700 dark:text-purple-300 {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_paid }}
+                </span>
+            </a>
+
+            <a href="?status=Delivered" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if request.GET.status == 'Delivered' %} border-emerald-500 text-emerald-600 dark:border-emerald-500 dark:text-emerald-400 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                Completed
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if request.GET.status == 'Delivered' %} bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 border border-emerald-400 dark:border-emerald-700 dark:text-emerald-300 {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_delivered }}
+                </span>
+            </a>
+
+            <a href="?status=Cancelled" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if request.GET.status == 'Cancelled' %} border-red-500 text-red-600 dark:border-red-500 dark:text-red-400 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                Cancelled
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if request.GET.status == 'Cancelled' %} bg-red-100 text-red-700 dark:bg-red-900/20! border border-red-400 dark:border-red-400! dark:text-red-300! {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_cancelled }}
+                </span>
+            </a>
+
+            <a href="?status=Returned&status=Refunded" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if request.GET.status == 'Returned' or request.GET.status == 'Refunded' %} border-orange-500 text-orange-600 dark:border-orange-500 dark:text-orange-400 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                Returns 
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if request.GET.status == 'Returned' or request.GET.status == 'Refunded' %} bg-orange-100 text-orange-700 dark:bg-orange-900/40! border border-orange-400 dark:border-orange-500 dark:text-orange-300! {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_returned }}
+                </span>
+            </a>
+
+        </nav>
+    </div>
+
+    {{ block.super }}
+{% endblock %}
+
+
+
+
+
+
+
+
+
+{% comment %} 
+{% extends "admin/change_list.html" %}
+
+{% block date_hierarchy %}
+    <div class="mb-6 mt-4 p-4 border-b border-gray-200 dark:border-gray-700 w-full block">
+        <nav class="flex flex-wrap -mb-px gap-8">
+            
+            <a href="?" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if not request.GET.status %} border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-500 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                All
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if not request.GET.status %} bg-primary-100 text-primary-700 dark:bg-blue-900/40! border border-blue-400 dark:border-blue-700 dark:text-primary-400 {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_all }}
+                </span>
+            </a>
+
+            <a href="?status=Pending" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if request.GET.status == 'Pending' %} border-yellow-500 text-yellow-600 dark:border-yellow-500 dark:text-yellow-400 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                Pending
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if request.GET.status == 'Pending' %} bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 border border-yellow-400 dark:border-yellow-700 dark:text-yellow-300 {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_pending }}
+                </span>
+            </a>
+
+            <a href="?status=Delivered" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if request.GET.status == 'Delivered' %} border-emerald-500 text-emerald-600 dark:border-emerald-500 dark:text-emerald-400 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                Completed
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if request.GET.status == 'Delivered' %} bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 border border-emerald-400 dark:border-emerald-700 dark:text-emerald-300 {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_delivered }}
+                </span>
+            </a>
+
+            <a href="?status=Cancelled" class="pb-3 px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 
+                {% if request.GET.status == 'Cancelled' %} border-red-500 text-red-600 dark:border-red-500 dark:text-red-400 {% else %} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 {% endif %}">
+                Cancelled
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                    {% if request.GET.status == 'Cancelled' %} bg-red-100 text-red-700 dark:bg-red-900/20! border border-red-400 dark:border-red-700 dark:text-red-300! {% else %} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 {% endif %}">
+                    {{ count_cancelled }}
+                </span>
+            </a>
+
+        </nav>
+    </div>
+
+    {{ block.super }}
+{% endblock %}
+{% endcomment %}
+
+

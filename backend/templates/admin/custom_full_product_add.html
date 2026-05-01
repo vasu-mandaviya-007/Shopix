@@ -1,0 +1,408 @@
+{% extends "unfold/layouts/base.html" %}
+
+{% block extrastyle %}
+<style>
+    /* Premium Striped Background for Nested Items */
+    .bg-striped { background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px); }
+    .dark .bg-striped { background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.02) 10px, rgba(255,255,255,0.02) 20px); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+</style>
+<script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="loadingOverlay" class="hidden fixed inset-0 z-100 bg-gray-900/80 backdrop-blur-sm flex-col items-center justify-center transition-all">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center border border-gray-200 dark:border-gray-700">
+        <svg class="animate-spin h-12 w-12 text-primary-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Processing Catalog...</h3>
+        <p class="text-sm text-gray-500 mt-2">Saving product details safely.</p>
+    </div>
+</div> 
+
+<form method="POST" enctype="multipart/form-data" id="masterForm" class="pb-24" onsubmit="document.getElementById('loadingOverlay').classList.remove('hidden')">
+    {% csrf_token %}
+    
+    <div id="deletedImagesTracker"></div>
+
+    <input type="hidden" name="total_spec_groups" id="totalSpecGroups" value="0">
+    <input type="hidden" name="total_variants" id="totalVariants" value="0">
+
+    <div class="px-4 py-6 md:px-8 max-w-[1400px] mx-auto">
+        
+        <div class="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-800 pb-2">
+            <button type="button" onclick="openTab('tab-general', this)" class="tab-btn active-tab px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm rounded-md text-sm font-bold text-gray-900 dark:text-white ring-2 ring-primary-500">1. General Details</button>
+            <button type="button" onclick="openTab('tab-specs', this)" class="tab-btn px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 rounded-md">2. Specifications</button>
+            <button type="button" onclick="openTab('tab-variants', this)" class="tab-btn px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 rounded-md">3. Variants & Images</button>
+        </div>
+
+        <div id="tab-general" class="tab-content active space-y-6">
+            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 shadow-sm">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 border-b pb-2 dark:border-gray-800">Basic Info</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Title *</label>
+                        <input type="text" name="title" value="{{ product.title|default:'' }}" required class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Slug *</label>
+                        <input type="text" name="slug" value="{{ product.slug|default:'' }}" required class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Brand</label>
+                        <select name="brand" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-sm text-gray-900 dark:text-white">
+                            <option value="">Select Brand...</option>
+                            {% for b in brands %}
+                                <option value="{{ b.uid }}" {% if product and product.brand.uid == b.uid %}selected{% endif %}>{{ b.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Primary Category</label>
+                        <select name="primary_category" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-sm text-gray-900 dark:text-white">
+                            <option value="">Select Category...</option>
+                            {% for c in categories %}
+                                <option value="{{ c.uid }}" {% if product and product.primary_category.uid == c.uid %}selected{% endif %}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Multiple Categories (Hold Ctrl/Cmd)</label>
+                        <select name="categories" multiple class="w-full h-32 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-sm text-gray-900 dark:text-white">
+                            {% for c in categories %}
+                                <option value="{{ c.uid }}" {% if product and c in product.categories.all %}selected{% endif %}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                    <textarea name="description" id="editor">{{ product.description|default:''|safe }}</textarea>
+                </div>
+                
+                <div class="mt-6 flex items-center bg-gray-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+                    <input type="checkbox" name="is_active" {% if product.is_active or not product %}checked{% endif %} class="w-5 h-5 rounded text-primary-600 focus:ring-primary-500">
+                    <label class="ml-3 font-bold text-gray-900 dark:text-white">Publish Product (is_active)</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-specs" class="tab-content space-y-4">
+            <div id="specContainer"></div>
+            <button type="button" onclick="addSpecGroup()" class="mt-4 bg-gray-800 dark:bg-gray-100 text-white dark:text-gray-900 px-5 py-2.5 rounded-lg text-sm font-bold shadow hover:bg-gray-700 transition">+ Add Specification Group (e.g. Display)</button>
+        </div>
+
+        <div id="tab-variants" class="tab-content space-y-6">
+            <div id="variantsContainer" class="space-y-6"></div>
+            <button type="button" onclick="addVariant()" class="mt-4 bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow transition">+ Add Product Variant</button>
+        </div>
+
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-4 flex justify-end shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-10 py-3 rounded-lg font-extrabold text-lg shadow-lg transition-transform hover:scale-105">
+            💾 Save Complete Product Catalog
+        </button>
+    </div>
+</form>
+
+<script>
+    const availableAttributes = [
+        // 🌟 FIX: Wapas sirf 'uid' kar diya hai taaki crash na ho
+        {% for attr in attributes %}{ id: "{{ attr.uid }}", name: "{{ attr.name|escapejs }}" },{% endfor %}
+    ];
+</script>
+
+<script>
+    CKEDITOR.replace('editor');
+
+    // ==========================================
+    // 🟢 TABS LOGIC
+    // ==========================================
+    function openTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-primary-500', 'text-gray-900', 'dark:text-white', 'font-bold');
+            b.classList.add('bg-gray-50', 'dark:bg-gray-900/50', 'text-gray-600', 'dark:text-gray-400', 'font-medium');
+        });
+        
+        btn.classList.remove('bg-gray-50', 'dark:bg-gray-900/50', 'text-gray-600', 'dark:text-gray-400', 'font-medium');
+        btn.classList.add('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-primary-500', 'text-gray-900', 'dark:text-white', 'font-bold');
+    }
+
+    // ==========================================
+    // 🔵 SPECIFICATIONS LOGIC
+    // ==========================================
+    let specCount = 0;
+    function addSpecGroup(data = null) {
+        const g = specCount++;
+        const name = data ? data.name : ''; 
+        
+        const html = `
+            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm mb-6 overflow-hidden" id="sg_${g}">
+                <input type="hidden" name="spec_group_${g}_total_items" id="totalItems_g${g}" value="0">
+                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between">
+                    <input type="text" id="id_spec_group_${g}_name" name="spec_group_${g}_name" value="${name}" placeholder="Group Name (e.g. Connectivity)" required class="w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-sm font-bold text-gray-900 dark:text-white">
+                    <button type="button" onclick="document.getElementById('sg_${g}').remove()" class="text-red-500 font-bold hover:text-red-700">X Remove Group</button>
+                </div>
+                <div class="p-4 bg-striped space-y-2" id="specItems_g${g}"></div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+                    <button type="button" onclick="addSpecItem(${g})" class="text-sm font-bold text-primary-600">+ Add Property</button>
+                </div>
+            </div>`;
+        document.getElementById('specContainer').insertAdjacentHTML('beforeend', html);
+        
+        if (data && data.items && data.items.length > 0) {
+            data.items.forEach(item => addSpecItem(g, item));
+        } else {
+            addSpecItem(g);
+        }
+        document.getElementById('totalSpecGroups').value = specCount;
+    }
+
+    function addSpecItem(g, data = null) {
+        const i = parseInt(document.getElementById(`totalItems_g${g}`).value);
+        const name = data ? data.name : '';
+        const value = data ? data.value : '';
+
+        const html = `
+            <div class="flex gap-4 items-center bg-white dark:bg-gray-900 p-2 border border-gray-200 dark:border-gray-700 rounded shadow-sm" id="si_${g}_${i}">
+                <input type="text" id="id_spec_group_${g}_item_${i}_name" name="spec_group_${g}_item_${i}_name" value="${name}" placeholder="Name (e.g. Wi-Fi)" class="w-1/3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm text-gray-900 dark:text-white">
+                <input type="text" id="id_spec_group_${g}_item_${i}_value" name="spec_group_${g}_item_${i}_value" value="${value}" placeholder="Value (e.g. 802.11ax)" class="w-2/3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm text-gray-900 dark:text-white">
+            </div>`;
+        document.getElementById(`specItems_g${g}`).insertAdjacentHTML('beforeend', html);
+        document.getElementById(`totalItems_g${g}`).value = i + 1;
+    }
+
+    // ==========================================
+    // 🟠 VARIANTS & ATTRIBUTES LOGIC
+    // ==========================================
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.attr-menu-container')) {
+            document.querySelectorAll('.attr-dropdown-menu').forEach(menu => menu.classList.add('hidden'));
+        }
+    });
+
+    function toggleMenu(id) {
+        document.querySelectorAll('.attr-dropdown-menu').forEach(menu => {
+            if (menu.id !== id) menu.classList.add('hidden');
+        });
+        document.getElementById(id).classList.toggle('hidden');
+    }
+
+    function addNewAttribute(v, a) {
+        document.getElementById(`menu_${v}_${a}`).classList.add('hidden');
+        const newName = prompt("Enter new Attribute (e.g., Refresh Rate, Battery):");
+        if (newName && newName.trim() !== "") {
+            const cleanName = newName.trim();
+            const newValue = "NEW::" + cleanName; 
+            const allSelects = document.querySelectorAll('select[name*="_attr_"][name$="_id"]');
+            allSelects.forEach(select => {
+                const option = document.createElement("option");
+                option.value = newValue;
+                option.text = cleanName + " (New)";
+                select.appendChild(option);
+            });
+            document.getElementById(`sel_${v}_${a}`).value = newValue;
+        }
+    }
+
+    // 🌟 THIS IS THE MASTER BUILDER FUNCTION
+    let variantCount = 0;
+    function addVariant(data = null) {
+        const v = variantCount++;
+        
+        const uid = data ? data.uid : '';
+        const sku = data ? data.sku : '';
+        const price = data ? data.price : '0.00';
+        const mrp = data ? data.mrp : '0.00';
+        const cost_price = data ? data.cost_price : '0.00';
+        const stock = data ? data.stock_qty : '0';
+        const is_default = (data && data.is_default) || (!data && v === 0) ? 'checked' : '';
+
+        const html = `
+            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden mb-6" id="var_${v}">
+                <input type="hidden" name="variant_${v}_uid" value="${uid}">
+                <input type="hidden" name="variant_${v}_total_attrs" id="totalAttrs_v${v}" value="0">
+                <input type="hidden" name="variant_${v}_total_images" id="totalImages_v${v}" value="0">
+                
+                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <span class="font-bold text-gray-900 dark:text-white">Product Variant #${v + 1}</span>
+                    <button type="button" onclick="document.getElementById('var_${v}').remove()" class="text-red-500 font-bold hover:text-red-700">X Remove Variant</button>
+                </div>
+                
+                <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase">SKU Code *</label>
+                        <input type="text" id="id_variant_${v}_sku" name="variant_${v}_sku" value="${sku}" required class="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Stock</label>
+                        <input type="number" id="id_variant_${v}_stock" name="variant_${v}_stock" value="${stock}" class="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                    </div>
+                    <div class="flex items-center mt-6">
+                        <input type="checkbox" id="id_variant_${v}_is_default" name="variant_${v}_is_default" ${is_default} class="w-5 h-5 rounded text-primary-600">
+                        <label for="id_variant_${v}_is_default" class="ml-2 font-bold text-sm text-gray-900 dark:text-white">Set Default</label>
+                    </div>
+                    
+                    <div><label class="block text-xs font-bold text-gray-500 uppercase">Cost Price</label><input type="number" id="id_variant_${v}_cost_price" step="0.01" name="variant_${v}_cost_price" value="${cost_price}" class="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-gray-500 uppercase">MRP</label><input type="number" id="id_variant_${v}_mrp" step="0.01" name="variant_${v}_mrp" value="${mrp}" class="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-gray-500 uppercase">Sell Price</label><input type="number" id="id_variant_${v}_price" step="0.01" name="variant_${v}_price" value="${price}" class="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 border-t border-gray-200 dark:border-gray-700 divide-y md:divide-y-0 md:divide-x dark:divide-gray-700">
+                    <div class="p-4 bg-striped">
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">🏷️ Attributes</label>
+                        <div id="attrContainer_v${v}"></div>
+                        <button type="button" onclick="addVariantAttr(${v})" class="text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 px-3 py-1.5 mt-2 rounded shadow-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50">+ Add Attribute</button>
+                    </div>
+                    
+                    <div class="p-4 bg-blue-50/30 dark:bg-blue-900/10">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">📸 Product Images</label>
+                            <button type="button" onclick="addVariantImage(${v})" class="text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded shadow-sm font-bold text-blue-600 dark:text-blue-400">+ Add New Photo Box</button>
+                        </div>
+                        <div id="existingImages_v${v}" class="flex gap-2 mb-3 flex-wrap"></div>
+                        <div id="imageContainer_v${v}" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>`;
+            
+        document.getElementById('variantsContainer').insertAdjacentHTML('beforeend', html);
+        
+        if (data && data.attributes && data.attributes.length > 0) {
+            data.attributes.forEach(attrData => addVariantAttr(v, attrData));
+        } else {
+            addVariantAttr(v); 
+        }
+
+        if (data && data.images && data.images.length > 0) {
+            let imgHtml = '';
+            data.images.forEach(img => {
+                if (img.url) {
+                    imgHtml += `
+                    <div class="relative w-20 h-20 border border-gray-300 rounded overflow-hidden shadow-sm" id="ext_img_${img.id}">
+                        <img src="${img.url}" class="w-full h-full object-cover">
+                        <button type="button" onclick="removeExistingImage('${img.id}')" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] px-1.5 py-0.5 font-bold hover:bg-red-800" title="Delete">X</button>
+                        ${img.is_main ? '<div class="absolute bottom-0 w-full bg-primary-600 text-white text-[10px] text-center font-bold pb-0.5">MAIN</div>' : ''}
+                    </div>`;
+                }
+            });
+            document.getElementById(`existingImages_v${v}`).innerHTML = imgHtml;
+        }
+
+        addVariantImage(v);
+        document.getElementById('totalVariants').value = variantCount;
+    }
+
+    function addVariantAttr(v, attrData = null) {
+        const container = document.getElementById(`attrContainer_v${v}`);
+        const countInput = document.getElementById(`totalAttrs_v${v}`);
+        const a = parseInt(countInput.value);
+
+        let attrOptions = '<option value="">Select value</option>';
+        availableAttributes.forEach(attr => { 
+            const selected = (attrData && attrData.id === attr.id) ? 'selected' : '';
+            attrOptions += `<option value="${attr.id}" ${selected}>${attr.name}</option>`; 
+        });
+
+        const val = attrData ? attrData.val : '';
+
+        const html = `
+            <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 shadow-sm mb-4 overflow-hidden" id="va_${v}_${a}">
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <span class="text-xs font-semibold text-gray-900 dark:text-white">Value #${a + 1}</span>
+                    <button type="button" onclick="document.getElementById('va_${v}_${a}').remove()" class="text-red-500 hover:text-red-700" title="Delete attribute">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mb-2 md:mb-0">Attribute *</label>
+                        <div class="w-full md:w-3/4 flex gap-2 items-center attr-menu-container">
+                            <select id="sel_${v}_${a}" name="variant_${v}_attr_${a}_id" required class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                                ${attrOptions}
+                            </select>
+
+                            <div class="relative">
+                                <button type="button" onclick="toggleMenu('menu_${v}_${a}')" class="p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 hover:bg-gray-50 transition">
+                                    <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 16 16"><path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+                                </button>
+                                <div id="menu_${v}_${a}" class="attr-dropdown-menu hidden absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
+                                    <button type="button" onclick="addNewAttribute('${v}', '${a}')" class="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        Add new attribute type
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="border-t border-dashed border-gray-200 dark:border-gray-700">
+                    
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mb-2 md:mb-0">Value *</label>
+                        <div class="w-full md:w-3/4">
+                            <input type="text" id="id_variant_${v}_attr_${a}_value" name="variant_${v}_attr_${a}_value" value="${val}" required class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        
+        container.insertAdjacentHTML('beforeend', html);
+        countInput.value = a + 1;
+    }
+
+    function addVariantImage(v) {
+        const container = document.getElementById(`imageContainer_v${v}`);
+        const countInput = document.getElementById(`totalImages_v${v}`);
+        const i = parseInt(countInput.value);
+        
+        const html = `
+            <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-2 border border-gray-200 dark:border-gray-700 rounded shadow-sm" id="vi_${v}_${i}">
+                <div class="w-1/2 flex items-center">
+                    <input type="file" id="id_variant_${v}_image_${i}" name="variant_${v}_image_${i}" accept="image/*" onchange="event.stopPropagation()" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer">
+                    <span class="hidden"></span> </div>
+                
+                <div class="flex items-center space-x-3">
+                    <label for="id_variant_${v}_main_image_${i}" class="flex items-center text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+                        <input type="radio" id="id_variant_${v}_main_image_${i}" name="variant_${v}_main_image" value="${i}" ${i === 0 ? 'checked' : ''} class="w-4 h-4 text-primary-600 mr-1 cursor-pointer">
+                        Main
+                    </label>
+                    <button type="button" onclick="document.getElementById('vi_${v}_${i}').remove()" class="text-red-500 font-bold text-sm hover:text-red-700">X</button>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+        countInput.value = i + 1;
+    }
+
+    function removeExistingImage(imageId) {
+        document.getElementById(`ext_img_${imageId}`).remove();
+        document.getElementById('deletedImagesTracker').insertAdjacentHTML('beforeend', `<input type="hidden" name="deleted_images" value="${imageId}">`);
+    }
+
+    // ==========================================
+    // 🔌 THE INITIALIZATION TRIGGER
+    // ==========================================
+    window.onload = function() {
+        const existingVariants = {{ variants_json|safe|default:'null' }};
+        if (existingVariants && existingVariants.length > 0) {
+            existingVariants.forEach(variantData => addVariant(variantData));
+        } else {
+            addVariant(); 
+        }
+        
+        const existingSpecs = {{ specs_json|safe|default:'null' }};
+        if (existingSpecs && existingSpecs.length > 0) {
+            existingSpecs.forEach(specData => addSpecGroup(specData));
+        } else {
+            addSpecGroup();
+        }
+    };
+</script>
+
+{% endblock %}

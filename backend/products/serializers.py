@@ -4,15 +4,17 @@ from .models import (
     ProductVariant,
     ProductImage,
 )  # Assuming you have an Image model
-from products.models import (
+from products.models import ( 
     SpecificationGroup,
     SpecificationItem,
     VariantAttributeValue,
     Brand,
+    Review,
 )
 from categories.serializers import CategorySerializer
 from django.forms.models import model_to_dict
 
+from django.db.models import Avg
 
 # 1. Serializer for Images (if you need image URLs)
 class ImageSerializer(serializers.ModelSerializer):
@@ -66,9 +68,15 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 # 3. Brand Serialzer
 class BrandSerializer(serializers.ModelSerializer):
+    
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Brand
-        fields = ["uid", "name", "slug"]
+        fields = ["uid", "name", "slug","image"] 
+
+    def get_image(self, obj):
+        return obj.image.url
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -115,9 +123,19 @@ class ProductSerializer(serializers.ModelSerializer):
     primary_category = serializers.SerializerMethodField()
     specifications = SpecificationGroupSerializer(many=True, source="spec_groups.all")
 
+    average_rating = serializers.SerializerMethodField()
+    total_reviews = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         fields = "__all__"
+
+    def get_average_rating(self, obj):
+        avg = obj.reviews.aggregate(Avg('rating'))['rating__avg']
+        return round(avg, 1) if avg else 0
+
+    def get_total_reviews(self, obj):
+        return obj.reviews.count()
 
     def get_primary_category(self, obj):
         return obj.primary_category.name
@@ -150,3 +168,24 @@ class ProductSerializer(serializers.ModelSerializer):
         if display_variant:
             return ProductVariantSerializer(display_variant, context=self.context).data
         return None
+
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+    user_profile_pic = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Review
+        fields = ['id', 'user_name', 'user_profile_pic', 'rating', 'comment', 'created_at']
+
+    def get_user_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def get_user_profile_pic(self, obj):
+        # Agar tumhare user model mein profile_pic hai toh return karo, warna None
+        if hasattr(obj.user.profile, 'profile_pic') and obj.user.profile.profile_pic:
+            return obj.user.profile.profile_pic.url
+        return None
+    
+    

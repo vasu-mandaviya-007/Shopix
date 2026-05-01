@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/**
+  * A catch-all path to Django template files, JavaScript, and Python files
+  * that contain Tailwind CSS classes and will be scanned by Tailwind to generate the final CSS file.
+  *
+  * If your final CSS file is not being updated after code changes, you may want to broaden or narrow
+  * the scope of this path. 
+  */
+
+@source "../../../**/*.{html,py,js}";
+
+/* 1. Root templates folder (Jahan aapka index.html, base.html hai) */
+@source "../../../templates";
+
+/* 2. Django ke har App ka templates folder (e.g., orders/templates, products/templates) */
+@source "../../../**/templates";
+
+/* 3. (Optional) Agar aapne kisi custom Javascript file me Tailwind classes likhi hain */
+@source "../../../static/js";
+
+@theme {
+  --color-surface-dark: #262626;
+  --color-secondary-dark: #404040;
+  --color-border-dark: #333333;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 25%;
+  background: oklch(88.2% 0.059 254.128);
+  opacity: 0;
+  animation: ripple 1s infinite linear;
+  box-sizing: border-box;
+  z-index: 0;
+}
+
+.ripple1 {
+  animation-delay: 0s;
+}
+
+.ripple2 {
+  animation-delay: 0.5s;
+}
+
+.ripple3 {
+  animation-delay: 2s;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* @utility thin-scrollbar {
+  scrollbar-width: thin;
+} */
+
+
+@utility custom-scrollbar {
+    /* 🦊 Firefox Fallback */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-300) transparent;
+
+    /* 🌙 Firefox Dark Mode (Native Nesting) */
+    .dark & {
+        scrollbar-color: var(--color-zinc-700) transparent;
+    }
+
+    /* 🌐 Chrome, Edge, Safari Webkit */
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        @apply bg-gray-100 rounded-full dark:bg-[#1e1e1e];
+    }
+
+    &::-webkit-scrollbar-thumb {
+        @apply bg-gray-300 rounded-full hover:bg-gray-400 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors;
+    }
+}

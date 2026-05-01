@@ -1,0 +1,86 @@
+{% extends "unfold/layouts/base.html" %}
+
+{% block content %}
+<div class="px-4 py-6 md:px-8">
+    
+    <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 mb-6 rounded shadow-sm">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Product Created: {{ product.title }}</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Ab iske saare variants aur unki photos ek sath niche add kijiye.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="variantForm">
+        {% csrf_token %}
+        <input type="hidden" name="total_variants" id="totalVariants" value="0">
+
+        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 mb-6 shadow-sm">
+            <div class="flex justify-between items-center border-b pb-4 mb-4 dark:border-gray-800">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Variants & Pricing</h2>
+                <button type="button" onclick="addVariant()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                    + Add Row
+                </button>
+            </div>
+
+            <div id="variantsContainer" class="space-y-6">
+                </div>
+        </div>
+
+        <div class="flex justify-end mt-4">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-md transition-colors">
+                Save Variants & Images
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    let variantCount = 0;
+
+    function addVariant() {
+        const container = document.getElementById('variantsContainer');
+        const index = variantCount;
+        
+        const html = `
+            <div class="p-5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 rounded-lg relative">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400">SKU Code *</label>
+                        <input type="text" name="variant_${index}_sku" required class="w-full mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400">MRP</label>
+                        <input type="number" step="0.01" name="variant_${index}_mrp" value="0" class="w-full mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400">Selling Price</label>
+                        <input type="number" step="0.01" name="variant_${index}_price" value="0" class="w-full mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400">Stock Qty</label>
+                        <input type="number" name="variant_${index}_stock" value="0" class="w-full mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white">
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-4 flex items-center justify-between">
+                    <div class="w-2/3">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Images (Ctrl to select multiple)</label>
+                        <input type="file" name="variant_${index}_images" multiple accept="image/*" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer">
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" name="variant_${index}_is_default" ${index === 0 ? 'checked' : ''} class="w-4 h-4 rounded text-blue-600">
+                        <label class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Set as Default Variant</label>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', html);
+        variantCount++;
+        document.getElementById('totalVariants').value = variantCount;
+    }
+
+    // Ek khali form pehle se load karke rakho
+    window.onload = function() {
+        addVariant();
+    };
+</script>
+{% endblock %}

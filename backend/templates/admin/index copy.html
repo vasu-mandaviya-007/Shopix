@@ -1,0 +1,256 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% load i18n static custom_filters %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="px-4 py-2">
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">
+            🚀 Shopix Analytics Dashboard
+        </h1>
+        <select id="dateFilter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium cursor-pointer shadow-sm">
+            <option value="7" selected>Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="365">This Year</option>
+            <option value="0">All Time (Lifetime)</option>
+        </select>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {% for item in kpi %}
+        <div class="p-6 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-900 dark:border-gray-800 transition-all hover:shadow-md">
+            <h3 class="text-sm flex items-center gap-2 font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                {% autoescape off %}
+                    {{ item.icon }}
+                {% endautoescape %}
+                {{ item.title }}
+            </h3>
+            <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-3">{{ item.metric }}</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-3 font-medium">{{ item.footer }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <div class="p-6 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-900 dark:border-gray-800">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">📈 Last 7 Days Revenue</h2>
+            <div class="relative h-64 w-full">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <div class="p-6 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-900 dark:border-gray-800">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">🍩 Order Status Distribution</h2>
+            <div class="relative h-64 w-full flex justify-center">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-10">
+        
+        <div class="lg:col-span-2 p-0 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">🛒 Recent Orders</h2>
+                <a href="{% url 'admin:orders_order_changelist' %}" class="text-sm font-medium text-blue-600 dark:text-blue-500 hover:underline">View All →</a>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Order ID</th>
+                            <th scope="col" class="px-6 py-3">Customer</th>
+                            <th scope="col" class="px-6 py-3">Total Items</th>
+                            <th scope="col" class="px-6 py-3">Amount</th>
+                            <th scope="col" class="px-6 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                <a href="{% url 'admin:orders_order_change' order.uid %}" class="hover:text-blue-600">#{{ order.uid|truncatechars:10 }}</a>
+                            </td>
+                            <td class="px-6 py-4">{{ order.user.email|default:"Guest" }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-gray-200">{{ order.total_amount|rupee }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-gray-200">
+                                <span class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-bold px-3 py-1 rounded-full text-xs border border-gray-200 dark:border-gray-700">
+                                    {{ order.total_item }} 
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-gray-500">No orders found yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+
+            <div class="p-0 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+                <div class="px-6 py-4 border-b border-green-100 bg-green-50 dark:bg-green-900/20 dark:border-green-900/30">
+                    <h2 class="text-base font-semibold text-green-700 dark:text-green-400">🏆 Top Selling Products</h2>
+                </div>
+                <div class="p-4">
+                    <ul id="topProductsList" class="divide-y divide-gray-200 dark:divide-gray-800">
+                        <li class="py-4 text-center text-gray-500">Loading top products...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="p-0 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+                <div class="px-6 py-4 border-b border-red-100 bg-red-50 dark:bg-red-900/20 dark:border-red-900/30 flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-red-700 dark:text-red-400 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">warning</span> Low Stock
+                    </h2>
+                </div>
+                
+                <div class="p-4">
+                    <ul class="divide-y divide-gray-200 dark:divide-gray-800">
+                        {% for product in low_stock_products %}
+                        <li class="py-3 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                {% with first_img=product.images.first %}
+                                    {% if first_img and first_img.image %}
+                                    <img src="{{ first_img.image.url }}" class="w-10 h-10 rounded object-cover border border-gray-200 dark:border-gray-700">
+                                    {% else %}
+                                    <div class="w-10 h-10 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">📦</div>
+                                    {% endif %}
+                                {% endwith %}
+                                
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate w-32" title="{{ product.product.title }}">{{ product.product.title }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">₹{{ product.price }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none {% if product.stock == 0 %}text-red-100 bg-red-600{% else %}text-orange-100 bg-orange-500{% endif %} rounded-full">
+                                    {{ product.stock_qty }} left
+                                </span>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="py-8 text-center text-gray-500 text-sm">All inventory is fully stocked! 🎉</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+        </div>
+
+
+    </div>
+
+</div>
+
+<script>
+
+    const salesDates = JSON.parse('{{ sales_dates|safe }}')
+    const salesAmounts = JSON.parse('{{ sales_amounts|safe }}');
+    const statusLabels = JSON.parse('{{ status_labels|safe }}');
+    const statusData = JSON.parse('{{ status_data|safe }}');
+    console.log(salesDates)
+    console.log(salesAmounts)
+
+    // 1. Sales Line Chart
+    const salesChart = document.getElementById('salesChart')
+    let mySalesChart = new Chart(salesChart,{
+        type : 'line',
+        data: {
+            labels: salesDates,
+            datasets : [{
+                label : 'Revenue (₹)',
+                data : salesAmounts,
+                borderColor: '#3b82f6', // Tailwind Blue-500
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                tension: 0.4, // Line ko smooth curve banane ke liye
+                fill: true 
+            }],
+        },
+        options: { 
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
+    })
+
+    // 2. Order Status Doughnut Chart 
+    const statusChart = document.getElementById('statusChart')
+    const myStatusChart = new Chart(statusChart, {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusData,
+                // Alag-alag status ke liye khubsurat colors
+                backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'], 
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: { 
+            maintainAspectRatio: false,
+            cutout: '70%', // Beech ka gadda bada karne ke liye
+        }
+    });
+    
+    // 2. Rupee Formatter
+    const formatRupee = (num) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(num);
+
+    // 3. API Fetch Logic
+    function fetchDashboardData(days) {
+        fetch(`/api/orders/dashboard-data/?days=${days}`)
+            .then(response => response.json())
+            .then(data => {
+                document.querySelectorAll('.p-6 > p.text-3xl')[0].innerText = formatRupee(data.total_revenue);
+                document.querySelectorAll('.p-6 > p.text-3xl')[1].innerText = data.total_orders;
+
+                mySalesChart.data.labels = data.sales_dates;
+                mySalesChart.data.datasets[0].data = data.sales_amounts;
+                mySalesChart.update();
+
+                const listContainer = document.getElementById('topProductsList');
+                listContainer.innerHTML = ''; 
+                
+                if(data.top_products.length === 0) {
+                    listContainer.innerHTML = '<li class="py-4 text-center text-gray-500">No sales data found for this period.</li>';
+                } else {
+                    data.top_products.forEach((product, index) => {
+                        listContainer.innerHTML += `
+                            <li class="py-3 flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-lg font-bold text-gray-400">#${index + 1}</span>
+                                    <p class="text-sm font-semibold text-gray-900 dark:text-white truncate w-40" title="${product.title}">${product.title}</p>
+                                </div>
+                                <span class="font-bold text-green-600 dark:text-green-400">${formatRupee(product.revenue)}</span>
+                            </li>
+                        `;
+                    });
+                }
+            });
+    }
+
+    // 4. Dropdown Listener
+    document.getElementById('dateFilter').addEventListener('change', (e) => fetchDashboardData(e.target.value));
+    
+    // 5. Initial Load
+    document.addEventListener('DOMContentLoaded', () => fetchDashboardData(7));
+
+</script>
+
+{% endblock  %}

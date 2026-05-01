@@ -1,0 +1,7 @@
+cd "D:\Internship Project\production\ecommerce (react+django)\frontend" && npm run dev
+
+
+cd "D:\Internship Project\production\ecommerce (react+django)\backend" && py manage.py runserver
+
+
+cd "D:\Internship Project\production\ecommerce (react+django)\backend" && py manage.py tailwind start

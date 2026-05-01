@@ -1,0 +1,184 @@
+// import React, { useContext, useEffect, useState } from 'react'
+// import API_BASE_URL from "../config/config.js";
+// import axios from "axios";
+// import { ShopContext } from '../context/ShopContext.jsx';
+// import { useNavigate } from 'react-router-dom';
+// import Skel from './skeleton/Skel.jsx';
+// import { Skeleton } from '@mui/material';
+
+// const BrandList = ({ className = "" }) => {
+
+//     const [loading, setLoading] = useState(true)
+
+//     const navigate = useNavigate();
+
+//     const [brands, setBrands] = useState([])
+
+//     useEffect(() => {
+
+//         const fetchBrands = async () => { 
+
+//             try {
+
+//                 setLoading(true)
+
+//                 const response = await axios.get(`${API_BASE_URL}/api/products/brands/`);
+
+//                 setBrands(response.data.brands);
+
+
+//             } catch (error) {
+
+//                 console.error("Error fetching brands:", error);
+
+//             } finally {
+
+//                 setLoading(false)
+
+//             }
+
+//         }
+
+//         fetchBrands();
+
+//     }, [])
+
+
+//     return (
+
+//         <div className={`${className} mt-4`}>
+
+//             <h1 className='font-bold text-xl lg:text-2xl text-center lg:text-left'>Shop by Brand</h1>
+
+//             <div className='w-full grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9 gap-3 sm:gap-4 md:gap-6 lg:gap-8 mt-8'>
+
+//                 {
+
+//                     loading
+//                         ?
+//                         Array.from({ length: 8 }).map((_, index) => (
+
+//                             <div key={index}>
+//                                 <Skeleton className='aspect-square transform-none! rounded-full!' />
+//                                 <Skeleton className=' mt-3! transform-none! w-[90%]! mx-auto!' />
+//                             </div>
+
+//                         ))
+//                         :
+//                         brands.map((brand, index) => (
+
+//                             <div key={index} onClick={() => { navigate(`/products/?page=1&Brand=${brand.name}`), scrollTo(0, 0) }} className='min-w-1/9 flex flex-col items-center cursor-pointer'>
+//                                 <div key={index} className='relative bg-gray-100 hover:brightness-98 rounded-full  aspect-square w-full'>
+//                                     <img src={brand.image} className='p-2 absolute left-1/2 top-1/2 rounded-full -translate-1/2 max-h-full! max-w-full! ' alt="" />
+//                                 </div>
+//                                 <span className='font-semibold text-mobile-1 sm:text-mobile-2 md:text-mobile-3 lg:text-sm text-center grow mt-2'>{brand.name}</span>
+//                             </div>
+
+//                         ))
+//                 }
+
+//             </div>
+
+//             {/* <div style={{ scrollbarWidth: "thin" }} className='w-full border mt-4 overflow-x-auto'>
+//                 <div className='flex gap-3'>
+//                     {
+//                         brands.map((brand, index) => (
+//                             <div key={index} className={`cursor-pointer min-w-1/9 p-1 rounded-xs`}>
+//                                 <div className='relative p-1.25 h-full grow overflow-hidden w-full'>
+//                                     <img src={brand?.brand_image} className=' absolute top-1/2 left-1/2 -translate-1/2 max-h-full! max-w-full! ' alt="" />
+//                                 </div>
+//                                 <span>{brand.name}</span>
+//                             </div>
+//                         ))
+//                     }
+//                 </div>
+//             </div> */}
+
+//         </div>
+//     )
+// }
+
+// export default BrandList
+
+
+
+
+import React, { useContext, useEffect, useState } from 'react'
+import API_BASE_URL from "../config/config.js";
+import axios from "axios";
+import { ShopContext } from '../context/ShopContext.jsx';
+import { useNavigate } from 'react-router-dom';
+import Skel from './skeleton/Skel.jsx';
+import { Skeleton } from '@mui/material';
+
+const BrandList = ({ className = "" }) => {
+
+    const [loading, setLoading] = useState(true)
+    const navigate = useNavigate();
+    const [brands, setBrands] = useState([])
+
+    useEffect(() => {
+
+        const fetchBrands = async () => {
+            try {
+                setLoading(true)
+                const response = await axios.get(`${API_BASE_URL}/api/products/brands/`);
+                setBrands(response.data.brands);
+            } catch (error) {
+                console.error("Error fetching brands:", error);
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchBrands();
+
+    }, [])
+
+    return (
+
+        <div className={`${className} mt-3 sm:mt-4`}>
+
+            <h1 className='font-bold text-lg sm:text-xl lg:text-2xl text-center lg:text-left'>
+                Shop by Brand
+            </h1>
+
+            <div className='w-full grid grid-cols-5 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9 gap-2 sm:gap-3 md:gap-5 lg:gap-8 mt-4 sm:mt-6 lg:mt-8'>
+
+                {loading
+                    ? Array.from({ length: 8 }).map((_, index) => (
+                        <div key={index}>
+                            <Skeleton className='aspect-square transform-none! rounded-full!' />
+                            <Skeleton className='mt-2! sm:mt-3! transform-none! w-[80%]! mx-auto!' />
+                        </div>
+                    ))
+                    : brands.map((brand, index) => (
+
+                        <div
+                            key={index}
+                            onClick={() => { navigate(`/products/?page=1&Brand=${brand.name}`); scrollTo(0, 0); }}
+                            className='flex flex-col items-center cursor-pointer group'
+                        >
+                            <div className='relative bg-gray-100 group-hover:brightness-95 transition-all rounded-full aspect-square w-full'>
+                                <img
+                                    src={brand.image}
+                                    className='p-1.5 sm:p-2 absolute left-1/2 top-1/2 -translate-1/2 rounded-full max-h-full! max-w-full!'
+                                    alt={brand.name}
+                                    loading='lazy'
+                                />
+                            </div>
+                            <span className='font-semibold text-[10px] sm:text-xs md:text-[13px] lg:text-sm text-center mt-1.5 sm:mt-2 leading-tight'>
+                                {brand.name}
+                            </span>
+                        </div>
+
+                    ))
+                }
+
+            </div>
+
+        </div>
+    )
+}
+
+export default BrandList

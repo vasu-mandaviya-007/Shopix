@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .models import Cart, CartItems, Coupon
+from .models import Cart, CartItems, Coupon,Wishlist
 from products.models import ProductVariant
 from django.forms import model_to_dict
 from .serializers import CartSerializer, CartItemsSerializer
@@ -12,6 +12,53 @@ from datetime import date
 from django.utils import timezone
 from django.http import Http404
 from django.db import transaction
+from .serializers import WishlistSerializer
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated]) # Sirf logged-in users ke liye
+def wishlist_view(request):
+    user = request.user
+
+    # 🌟 1. GET: User ki saari wishlist items fetch karna
+    if request.method == 'GET':
+        wishlist_items = Wishlist.objects.filter(user=user).order_by('-created_at')
+        serializer = WishlistSerializer(wishlist_items, many=True, context={'request': request})
+        return Response({'success': True, 'wishlist': serializer.data})
+
+    # 🌟 2. POST: Wishlist me Add ya Remove karna (Toggle)
+    elif request.method == 'POST':
+        # Ab frontend se 'variant_id' aayega
+        variant_id = request.data.get('variant_id') 
+        
+        if not variant_id:
+            return Response({'error': 'Variant ID is required'}, status=400)
+
+        try:
+            # Product ki jagah ProductVariant ko find karenge
+            variant = ProductVariant.objects.get(uid=variant_id) 
+        except ProductVariant.DoesNotExist:
+            return Response({'error': 'Variant not found'}, status=404)
+
+        # Toggle Logic
+        wishlist_item = Wishlist.objects.filter(user=user, variant=variant).first()
+        
+        if wishlist_item:
+            # Agar pehle se hai, toh remove kar do
+            wishlist_item.delete()
+            return Response({'success': True, 'message': 'Removed from Wishlist', 'is_in_wishlist': False})
+        else:
+            # Agar nahi hai, toh add kar do
+            Wishlist.objects.create(user=user, variant=variant)
+            return Response({'success': True, 'message': 'Added to Wishlist', 'is_in_wishlist': True})
+
+
+# 🌟 Check Status API
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_wishlist_status(request, variant_id): # Parameter name change kiya
+    exists = Wishlist.objects.filter(user=request.user, variant__uid=variant_id).exists()
+    return Response({'is_in_wishlist': exists})
 
 
 def _get_cart(request):

@@ -1,0 +1,324 @@
+{% extends "unfold/layouts/base.html" %}
+
+{% block extrastyle %}
+<style>
+    /* Tirchi Lines (Striped Background) Unfold jaisa */
+    .bg-striped {
+        background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px);
+    }
+    .dark .bg-striped {
+        background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.02) 10px, rgba(255,255,255,0.02) 20px);
+    }
+    /* Tab hiding logic */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+</style>
+<script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+{% endblock %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data" id="masterForm" class="pb-24">
+    {% csrf_token %}
+    <input type="hidden" name="total_spec_groups" id="totalSpecGroups" value="0">
+    <input type="hidden" name="total_variants" id="totalVariants" value="0">
+
+    <div class="px-4 py-6 md:px-8 max-w-[1600px] mx-auto">
+        
+        <div class="flex gap-2 mb-6">
+            <button type="button" onclick="openTab('tab-general', this)" class="tab-btn px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm rounded-md text-sm font-medium text-gray-900 dark:text-white ring-1 ring-primary-500">General</button>
+            <button type="button" onclick="openTab('tab-specs', this)" class="tab-btn px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 rounded-md">Specification groups</button>
+            <button type="button" onclick="openTab('tab-variants', this)" class="tab-btn px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 rounded-md">Product variants</button>
+        </div>
+
+        <div id="tab-general" class="tab-content active space-y-6">
+            
+            <div class="border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-gray-900 overflow-hidden shadow-sm">
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800">
+                    Basic Information
+                </div>
+                <div class="px-4 py-3 text-sm text-gray-500 border-b border-gray-200 dark:border-gray-800">
+                    The core details identifying this product.
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center py-2 border-b border-gray-100 dark:border-gray-800">
+                        <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mb-2 md:mb-0">Title <span class="text-red-500">*</span></label>
+                        <div class="w-full md:w-3/4">
+                            <input type="text" name="title" required class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row md:items-center py-2 border-b border-gray-100 dark:border-gray-800">
+                        <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mb-2 md:mb-0">Slug <span class="text-red-500">*</span></label>
+                        <div class="w-full md:w-3/4">
+                            <input type="text" name="slug" required class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row md:items-center py-2 border-b border-gray-100 dark:border-gray-800">
+                        <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mb-2 md:mb-0">Brand</label>
+                        <div class="w-full md:w-3/4">
+                            <select name="brand" class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm p-2 text-sm text-gray-900 dark:text-white">
+                                <option value="">---------</option>
+                                {% for b in brands %}<option value="{{ b.id }}">{{ b.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row md:items-center py-2 border-b border-gray-100 dark:border-gray-800">
+                        <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mb-2 md:mb-0">Primary category <span class="text-red-500">*</span></label>
+                        <div class="w-full md:w-3/4">
+                            <select name="primary_category" required class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm p-2 text-sm text-gray-900 dark:text-white">
+                                <option value="">---------</option>
+                                {% for c in categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row py-2 border-b border-gray-100 dark:border-gray-800">
+                        <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mt-2">Categories <span class="text-red-500">*</span></label>
+                        <div class="w-full md:w-3/4">
+                            <p class="text-xs text-gray-500 mb-2">Hold Ctrl/Cmd to select multiple categories.</p>
+                            <select name="categories" multiple required class="w-full h-40 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm p-2 text-sm text-gray-900 dark:text-white">
+                                {% for c in categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-gray-900 overflow-hidden shadow-sm">
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800">
+                    Product Details
+                </div>
+                <div class="p-4 flex flex-col md:flex-row">
+                    <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mt-2">Description</label>
+                    <div class="w-full md:w-3/4">
+                        <textarea name="description" id="editor"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-gray-900 overflow-hidden shadow-sm">
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 flex justify-between">
+                    SEO & Visibility
+                </div>
+                <div class="px-4 py-3 text-sm text-gray-500 border-b border-gray-200 dark:border-gray-800">
+                    Settings for search engines and site visibility.
+                </div>
+                <div class="p-4 flex flex-col md:flex-row md:items-center">
+                    <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white">Is active</label>
+                    <div class="w-full md:w-3/4">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_active" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 dark:bg-gray-700 peer-checked:bg-green-500"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-specs" class="tab-content space-y-4">
+            <div id="specGroupsContainer" class="space-y-4"></div>
+            <button type="button" onclick="addSpecGroup()" class="text-primary-600 dark:text-primary-500 font-medium text-sm flex items-center hover:underline mt-4">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add another Specification group
+            </button>
+        </div>
+
+        <div id="tab-variants" class="tab-content space-y-4">
+            <div id="variantsContainer" class="space-y-4"></div>
+            <button type="button" onclick="addVariant()" class="text-primary-600 dark:text-primary-500 font-medium text-sm flex items-center hover:underline mt-4">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add another Product variant
+            </button>
+        </div>
+
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-6 py-3 flex justify-between items-center z-50">
+        <button type="button" class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Close</button>
+        <div class="flex space-x-3">
+            <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md text-sm font-medium shadow-sm">Save Complete Product</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    const availableAttributes = [
+        {% for attr in attributes %}{ id: "{{ attr.id }}", name: "{{ attr.name|escapejs }}" },{% endfor %}
+    ];
+</script>
+
+<script>
+    // CKEditor Init
+    CKEDITOR.replace('editor');
+
+    // Tab Switching Logic
+    function openTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('bg-white', 'dark:bg-gray-800', 'ring-1', 'ring-primary-500', 'text-gray-900', 'dark:text-white');
+            btn.classList.add('bg-gray-50', 'dark:bg-gray-900/50', 'text-gray-600', 'dark:text-gray-400');
+        });
+        
+        btnElement.classList.remove('bg-gray-50', 'dark:bg-gray-900/50', 'text-gray-600', 'dark:text-gray-400');
+        btnElement.classList.add('bg-white', 'dark:bg-gray-800', 'ring-1', 'ring-primary-500', 'text-gray-900', 'dark:text-white');
+    }
+
+    // ==========================================
+    // SPECIFICATIONS GENERATOR
+    // ==========================================
+    let specGroupCount = 0;
+    function addSpecGroup() {
+        const gIdx = specGroupCount;
+        const html = `
+            <div class="border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-gray-900 overflow-hidden shadow-sm relative" id="sg_${gIdx}">
+                <input type="hidden" name="spec_group_${gIdx}_total_items" id="totalItems_g${gIdx}" value="0">
+                
+                <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex flex-col md:flex-row items-center gap-4">
+                    <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white">Name <span class="text-red-500">*</span></label>
+                    <div class="w-full md:w-3/4 flex items-center gap-2">
+                        <input type="text" name="spec_group_${gIdx}_name" required class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                        <button type="button" onclick="document.getElementById('sg_${gIdx}').remove()" class="text-red-500 hover:text-red-700"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800">
+                    Specification items
+                </div>
+                
+                <div class="bg-striped p-4 space-y-2" id="specItems_g${gIdx}">
+                    <div class="flex gap-4 mb-1">
+                        <label class="w-1/2 text-sm font-medium text-gray-900 dark:text-white">Name <span class="text-red-500">*</span></label>
+                        <label class="w-1/2 text-sm font-medium text-gray-900 dark:text-white">Value <span class="text-red-500">*</span></label>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                    <button type="button" onclick="addSpecItem(${gIdx})" class="text-primary-600 dark:text-primary-500 font-medium text-sm flex items-center hover:underline">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add another Specification item
+                    </button>
+                </div>
+            </div>
+        `;
+        document.getElementById('specGroupsContainer').insertAdjacentHTML('beforeend', html);
+        addSpecItem(gIdx); 
+        specGroupCount++;
+        document.getElementById('totalSpecGroups').value = specGroupCount;
+    }
+
+    function addSpecItem(gIdx) {
+        const container = document.getElementById(`specItems_g${gIdx}`);
+        const countInput = document.getElementById(`totalItems_g${gIdx}`);
+        const iIdx = parseInt(countInput.value);
+        
+        const html = `
+            <div class="flex gap-4 items-center bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 shadow-sm" id="si_${gIdx}_${iIdx}">
+                <input type="text" name="spec_group_${gIdx}_item_${iIdx}_name" class="w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                <input type="text" name="spec_group_${gIdx}_item_${iIdx}_value" class="w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white focus:ring-primary-500">
+                <button type="button" onclick="document.getElementById('si_${gIdx}_${iIdx}').remove()" class="text-red-500 hover:text-red-700"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+        countInput.value = iIdx + 1;
+    }
+
+    // ==========================================
+    // VARIANTS GENERATOR (Screenshots 4 & 5 Exact match)
+    // ==========================================
+    let variantCount = 0;
+    function addVariant() {
+        const vIdx = variantCount;
+        
+        const html = `
+            <div class="border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-gray-900 overflow-hidden shadow-sm" id="var_${vIdx}">
+                <input type="hidden" name="variant_${vIdx}_total_attrs" id="totalAttrs_v${vIdx}" value="0">
+                
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                    <span>Product variant: #${vIdx + 1}</span>
+                    <button type="button" onclick="document.getElementById('var_${vIdx}').remove()" class="text-red-500 hover:text-red-700"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                </div>
+
+                <div class="p-4 space-y-4">
+                    ${createFieldRow('Sku <span class="text-red-500">*</span>', `<input type="text" name="variant_${vIdx}_sku" required class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm">`)}
+                    ${createFieldRow('Cost price', `<input type="number" step="0.01" name="variant_${vIdx}_cost_price" value="0.0" class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm"><p class="text-xs text-gray-500 mt-1">Manufacturing/Purchase cost</p>`)}
+                    ${createFieldRow('Price <span class="text-red-500">*</span>', `<input type="number" step="0.01" name="variant_${vIdx}_price" value="0.0" class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm">`)}
+                    ${createFieldRow('Mrp', `<input type="number" step="0.01" name="variant_${vIdx}_mrp" value="0.0" class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm">`)}
+                    ${createFieldRow('Stock qty <span class="text-red-500">*</span>', `<input type="number" name="variant_${vIdx}_stock" value="0" class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm">`)}
+                    
+                    <div class="flex flex-col md:flex-row md:items-center py-2 border-b border-gray-100 dark:border-gray-800">
+                        <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white">Is default</label>
+                        <div class="w-full md:w-3/4">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="variant_${vIdx}_is_default" class="sr-only peer" ${vIdx===0?'checked':''}>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 dark:bg-gray-700 peer-checked:bg-green-500"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white border-y border-gray-200 dark:border-gray-800">
+                    Variant attribute values
+                </div>
+                <div class="bg-striped p-4 space-y-4" id="attrContainer_v${vIdx}"></div>
+                <div class="p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                    <button type="button" onclick="addVariantAttr(${vIdx})" class="text-primary-600 dark:text-primary-500 font-medium text-sm flex items-center hover:underline">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add another Variant attribute value
+                    </button>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800">
+                    Product images
+                </div>
+                <div class="p-4">
+                    ${createFieldRow('Image', `<input type="file" name="variant_${vIdx}_images" multiple accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer"> <p class="text-xs text-gray-500 mt-1">Select multiple images at once.</p>`)}
+                </div>
+            </div>
+        `;
+        document.getElementById('variantsContainer').insertAdjacentHTML('beforeend', html);
+        addVariantAttr(vIdx);
+        variantCount++;
+        document.getElementById('totalVariants').value = variantCount;
+    }
+
+    // Helper HTML for rows
+    function createFieldRow(label, inputHtml) {
+        return `
+        <div class="flex flex-col md:flex-row md:items-center py-2 border-b border-gray-100 dark:border-gray-800">
+            <label class="w-full md:w-1/4 text-sm font-medium text-gray-900 dark:text-white mb-2 md:mb-0">${label}</label>
+            <div class="w-full md:w-3/4">${inputHtml}</div>
+        </div>`;
+    }
+
+    function addVariantAttr(vIdx) {
+        const container = document.getElementById(`attrContainer_v${vIdx}`);
+        const countInput = document.getElementById(`totalAttrs_v${vIdx}`);
+        const aIdx = parseInt(countInput.value);
+
+        let attrOptions = '<option value="">Select value</option>';
+        availableAttributes.forEach(attr => { attrOptions += `<option value="${attr.id}">${attr.name}</option>`; });
+
+        const html = `
+            <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 shadow-sm" id="va_${vIdx}_${aIdx}">
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                    <span>Variant attribute value: #${aIdx + 1}</span>
+                    <button type="button" onclick="document.getElementById('va_${vIdx}_${aIdx}').remove()" class="text-red-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                </div>
+                <div class="p-4 space-y-4">
+                    ${createFieldRow('Attribute <span class="text-red-500">*</span>', `<select name="variant_${vIdx}_attr_${aIdx}_id" class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm">${attrOptions}</select>`)}
+                    ${createFieldRow('Value <span class="text-red-500">*</span>', `<input type="text" name="variant_${vIdx}_attr_${aIdx}_value" class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md p-2 text-sm">`)}
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+        countInput.value = aIdx + 1;
+    }
+
+    // Auto-load one default row
+    window.onload = function() {
+        addSpecGroup();
+        addVariant();
+    };
+</script>
+{% endblock %}

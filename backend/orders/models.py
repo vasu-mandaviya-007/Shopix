@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from products.models import ProductVariant
 from django.utils import timezone
+from django.db.models import Sum
 
 
 class Address(BaseModel):
@@ -27,25 +28,35 @@ class Address(BaseModel):
         return f"{self.full_name} - {self.address_line}"
 
 
-class Order(BaseModel): 
+class Order(BaseModel):
 
     # Contact Info
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,related_name="orders")
     email = models.EmailField()
 
     # Shipping Address
     full_name = models.CharField(max_length=100)
     address_line = models.TextField(max_length=255, null=True, blank=True)
-    phone = models.DecimalField(max_digits=15, decimal_places=0, null=True, blank=True)
+    phone = models.CharField(max_length=15, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     state = models.CharField(max_length=100, null=True, blank=True)
     landmark = models.CharField(max_length=100, null=True, blank=True)
     postal_code = models.CharField(max_length=20, null=True, blank=True)
 
+    # Delivery Info
+    courier_name = models.CharField(max_length=100, null=True, blank=True, help_text="e.g., BlueDart, Delhivery")
+    tracking_number = models.CharField(max_length=100, null=True, blank=True)
+
     # Payment Info
     coupon_used = models.CharField(max_length=50, blank=True, null=True)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # Tax and Shipping
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+
     is_paid = models.BooleanField(default=False)
     refund_status = models.CharField(
         default="Pending",
@@ -54,23 +65,35 @@ class Order(BaseModel):
             ("Completed", "Completed"),
         ],
     )
+
     transaction_id = models.CharField(max_length=100, null=True, blank=True)
     payment_method = models.CharField(max_length=50, default="Stripe")
+
     status = models.CharField(
         max_length=20,
         default="Pending",
         choices=[
             ("Pending", "Pending (Payment Awaited)"),
+            ("Failed", "Failed (Payment Rejected)"),
             ("Paid", "Paid (Order Confirmed)"),
-            ("Processing", "Processing"),
-            ("Shipped", "Shipped"),
+            ("On Hold", "On Hold (Reviewing)"),
+            ("Processing", "Processing (Packing)"),
+            ("Shipped", "Shipped (Dispatched)"),
             ("Out for Delivery", "Out for Delivery"),
             ("Delivered", "Delivered"),
-            ("Cancelled", "Cancelled"),
-            ("Returned", "Returned"),
+            ("Cancelled", "Cancelled (By User/Admin)"),
+            ("Returned", "Returned (Item Received Back)"),
+            ("Refunded", "Refunded (Money Sent Back)"),
         ],
     )
     delivered_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["is_paid", "status", "created_at"])]
+
+    @property
+    def total_item(self):
+        return self.items.aggregate(total=Sum("quantity"))["total"] or 0
 
     # Django ka default save method override karein (Auto-update trick)
     def save(self, *args, **kwargs):
@@ -84,31 +107,37 @@ class Order(BaseModel):
 
         super().save(*args, **kwargs)
 
-    # def __str__(self):
-    #     return f"Order {self.uid} - {self.email}"
+    def subtotal(self):
+        return (self.total_amount + self.discount_amount) - (self.tax_amount + self.shipping_cost)
+
     def __str__(self):
         return f"Order {str(self.uid)[:5]}..."
 
-    def subtotal(self): 
-        return self.total_amount + self.discount_amount
-
-
-class OrderItem(BaseModel):
+class OrderItem(BaseModel): 
 
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
     product = models.ForeignKey(ProductVariant, on_delete=models.SET_NULL, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    original_price = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
-    quantity = models.PositiveIntegerField(default=1)
 
+    product_name = models.CharField(max_length=255,null=True,blank=True, help_text="Snapshot of product name at time of purchase")
+    sku = models.CharField(max_length=255,null=True,blank=True, help_text="Snapshot of SKU")
+
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    quantity = models.PositiveIntegerField(default=1)
 
     @property
     def total_price(self):
         if self.price is None or self.quantity is None:
             return 0
         return self.price * self.quantity
+    
+    def save(self, *args, **kwargs):
+        # 🌟 AUTO-FILL Logic: Jab item cart se order me convert ho, toh name aur sku save kar lo
+        if self.product and not self.product_name:
+            self.product_name = self.product.product.name # Assuming relation is product -> product
+            self.sku = self.product.sku
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product} - {self.quantity}"

@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": "frontend"
+		},
+		{
+			"path": "backend"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.AdvanceCustomBrowserCmdLine": "",
+		"tailwindCSS.includeLanguages": {
+            "django-html": "html",
+            "html": "html"
+        },
+		// "tailwindCSS.experimental.configFile": "backend/theme/static_src/src/styles.css",
+		// 🚨 NAYA UPDATE: Isko Object bana dein, taaki ye sirf backend par apply ho
+        "tailwindCSS.experimental.configFile": {
+            "backend/theme/static_src/src/styles.css": "backend/**",
+			/* 2. React Frontend ke liye (Aapki main CSS file jisme @import "tailwindcss" likha hai) */
+            "frontend/src/index.css": "frontend/**"
+        }
+	}
+}

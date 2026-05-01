@@ -3,8 +3,11 @@ from .models import Product
 from categories.models import Category
 from django.forms.models import model_to_dict
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.http import JsonResponse
+from django.core.paginator import Paginator
 from rest_framework import status
 from products.serializers import (
     ProductVariant,
@@ -17,6 +20,65 @@ from products.models import SpecificationItem
 from categories.serializers import CategorySerializer
 from django.views.decorators.cache import cache_page
 from rest_framework.pagination import PageNumberPagination
+from django.views.decorators.csrf import csrf_exempt
+import json
+from google import genai
+from django.conf import settings
+
+from django.db.models import Count, Q, Avg
+
+from .models import Review
+from .serializers import ReviewSerializer
+
+
+@csrf_exempt
+def generate_ai_description(request):
+    if request.method == "POST":
+        try:
+
+            data = json.loads(request.body)
+
+            title = data.get("title", "")
+
+            if not title:
+                return JsonResponse({"error": "Title is required"}, status=400)
+
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+            prompt = f"""Write a highly engaging and professional e-commerce product description for '{title}'. 
+
+            Follow this EXACT visual formatting and spacing style:
+            1. Use <strong>[Catchy Heading]</strong> for the section title.
+            2. Put EXACTLY <br/> <br/> after the heading.
+            3. Write a 2-3 sentence engaging paragraph explaining the feature and benefit.
+            4. Put EXACTLY <br/> <br/> <br/> after the paragraph to create a large visual gap before the next heading.
+            5. Create 4 to 5 such sections. Do NOT use bullet points (<ul> or <li>).
+
+            IMPORTANT: Do NOT use markdown blocks like ```html. Return only the raw HTML text."""
+
+            response = client.models.generate_content(
+                model="gemini-2.5-flash", contents=prompt
+            )
+
+            # 🧹 THE ULTIMATE CLEANUP
+            clean_text = response.text.strip()
+
+            # 🌟 NAYA FIX: Text mein jahan bhi single (`) ya triple (```) backtick ho, usko gayab kar do!
+            clean_text = clean_text.replace("`", "")
+
+            # Agar text "html" se shuru ho raha hai toh usko bhi hata do
+            if clean_text.lower().startswith("html"):
+                clean_text = clean_text[4:].strip()
+
+            # Ab ekdum saaf aur pure text frontend ko bhejo
+            return JsonResponse({"description": clean_text})
+
+        except Exception as e:
+            print(e)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
 
 def build_category_path(category):
     path = []
@@ -24,7 +86,17 @@ def build_category_path(category):
         path.insert(0, category)
         category = category.parent
     return path
- 
+
+
+# @cache_page(60 * 60)
+@api_view(["GET"])
+@cache_page(60 * 60 * 24 * 7)  # Cache for 7 days
+def get_brands(req):
+    brands = Brand.objects.order_by("created_at")
+    serializer = BrandSerializer(brands, many=True, context={"request": req}).data
+
+    return Response({"brands": serializer})
+
 
 @api_view(["GET"])
 @cache_page(60 * 60)  # Cache for 1 hour
@@ -100,12 +172,15 @@ def get_deals_of_the_day(request):
         .distinct("product__primary_category")[:10]
     )
 
-    deals_data = ProductListSerializer(deals, many=True, context={"request": request}).data
+    deals_data = ProductListSerializer(
+        deals, many=True, context={"request": request}
+    ).data
 
     return Response({"deals_of_the_day": deals_data})
 
 
 @api_view(["GET"])
+@cache_page(60 * 15) # Cache for 15 minutes
 def get_homepage_data(request):
 
     trending_products = (
@@ -127,9 +202,7 @@ def get_homepage_data(request):
     )
 
     return Response(
-        {
-            "trending_products": paginator.get_paginated_response(trending_data.data).data
-        }
+        {"trending_products": paginator.get_paginated_response(trending_data.data).data}
     )
 
 
@@ -168,6 +241,7 @@ def get_related_products(request, slug):
 
 
 @api_view(["GET"])
+@cache_page(60 * 60) # 1 hour cache
 def get_product_detail(request, slug):
 
     product = get_object_or_404(Product, slug=slug)
@@ -365,11 +439,8 @@ class ProductPagination(PageNumberPagination):
     max_page_size = 50
 
 
-from django.db.models import Count
-from django.db.models import Q
-
-
 @api_view(["GET"])
+@cache_page(60 * 60)
 def get_product_listing(request, slug=None):
 
     if not slug or slug == "all":
@@ -488,6 +559,7 @@ def get_product_listing(request, slug=None):
     available_filters = []
 
     if brands:
+        print(brands)
         available_filters.append({"filterName": "Brand", "options": list(brands)})
 
     for key, values in dynamic_filters.items():
@@ -551,7 +623,7 @@ def get_product_listing(request, slug=None):
                 "has_next": paginator.page.has_next(),
                 "has_previous": paginator.page.has_previous(),
             },
-        } 
+        }
     )
     # pass
 
@@ -735,6 +807,82 @@ def get_product_by_category(request, slug):
 
     except Category.DoesNotExist:
         return Response({"error": "Category not found"}, status=404)
+
+
+@api_view(["GET", "POST"])
+@cache_page(60 * 15)
+@permission_classes([AllowAny])  # GET sabke liye open hai, POST andar check karenge
+def product_reviews(
+    request, product_id
+):  # Agar uuid use karte ho toh product_uid rakhna
+    try:
+        # Apne hisaab se lookup field change kar lena (id ya uid)
+        product = Product.objects.get(uid=product_id)
+    except Product.DoesNotExist:
+        return Response({"error": "Product not found"}, status=404)
+
+    # 1. Fetch Reviews (GET)
+    if request.method == "GET":
+
+        reviews = product.reviews.all()
+
+        # 🌟 Sorting Logic
+        sort_by = request.GET.get("sort", "newest")
+        if sort_by == "highest":
+            reviews = reviews.order_by("-rating", "-created_at")
+        elif sort_by == "lowest":
+            reviews = reviews.order_by("rating", "-created_at")
+        else:
+            reviews = reviews.order_by("-created_at")
+
+        # 🌟 Pagination
+        avg_rating = reviews.aggregate(Avg("rating"))["rating__avg"] or 0
+
+        distribution = reviews.aggregate(
+            star5=Count("id", filter=Q(rating=5)),
+            star4=Count("id", filter=Q(rating=4)),
+            star3=Count("id", filter=Q(rating=3)),
+            star2=Count("id", filter=Q(rating=2)),
+            star1=Count("id", filter=Q(rating=1)),
+        )
+
+        # Ek page par 5 reviews
+        paginator = Paginator(reviews, 5)
+        page_number = request.GET.get("page", 1)
+        page_obj = paginator.get_page(page_number)
+
+        serializer = ReviewSerializer(page_obj, many=True, context={"request": request})
+
+        return Response(
+            {
+                "reviews": serializer.data,
+                "has_next": page_obj.has_next(),  # Frontend ko batane ke liye ki aage aur reviews hain ya nahi
+                'distribution': distribution,
+                "total_pages": paginator.num_pages,
+                "average_rating": round(avg_rating, 1),
+                "total_reviews": reviews.count(),
+            }
+        )
+
+    # 2. Add/Update Review (POST)
+    elif request.method == "POST":
+        if not request.user.is_authenticated:
+            return Response({"error": "Please login to submit a review"}, status=401)
+
+        rating = request.data.get("rating")
+        comment = request.data.get("comment", "")
+
+        if not rating:
+            return Response({"error": "Rating is required"}, status=400)
+
+        # update_or_create se agar purana review hoga to update ho jayega, warna naya banega
+        review, created = Review.objects.update_or_create(
+            product=product,
+            user=request.user,
+            defaults={"rating": rating, "comment": comment},
+        )
+
+        return Response({"success": True, "message": "Review submitted successfully!"})
 
 
 # For Admin
@@ -982,6 +1130,8 @@ def scrape_and_create_variant(request):
         for attr_name, attr_value in attributes.items():
 
             # Create attribute dynamically
+            if "color" in attr_name.lower():
+                attr_name = "COLOR"
             attribute, _ = ProductAttribute.objects.get_or_create(name=attr_name)
 
             # Attach attribute value to variant
@@ -1203,6 +1353,8 @@ def scrape_and_create_product(request):
         for attr_name, attr_value in attributes.items():
 
             # Create attribute dynamically
+            if "color" in attr_name.lower():
+                attr_name = "COLOR"
             attribute, _ = ProductAttribute.objects.get_or_create(name=attr_name)
 
             # Attach attribute value to variant

@@ -1,0 +1,85 @@
+{% extends "unfold/change_list.html" %}
+
+{% block content %}
+    {{ block.super }}
+
+    <div id="statusUpdateModal" class="hidden fixed inset-0 z-9999 items-center justify-center bg-gray-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 border border-gray-200">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Update Order Status</h3>
+            <p class="text-sm text-gray-500 mb-6">Select the new fulfillment status for the selected orders.</p>
+
+            <select id="modalStatusSelect" class="w-full border border-gray-300 rounded-lg p-3 mb-8 focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium">
+                <option value="" disabled selected>-- Choose Status --</option>
+                <option value="Pending">Pending</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" id="closeModalBtn" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all">
+                    Cancel
+                </button>
+                <button type="button" id="confirmModalBtn" class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 shadow-md transition-all">
+                    Update Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById("changelist-form");
+            const modal = document.getElementById("statusUpdateModal");
+            
+            if(form) {
+                // Form Submit event ko pakda hai, button click ko nahi
+                form.addEventListener("submit", function(e) {
+                    const actionSelect = document.querySelector("select[name='action']");
+                    
+                    if (actionSelect && actionSelect.value === "bulk_update_status") {
+                        const selectedOrders = document.querySelectorAll('input[name="_selected_action"]:checked');
+                        
+                        if (selectedOrders.length > 0) {
+                            // Agar "hiddenModalStatus" input form me nahi hai, matlab modal abhi submit nahi hua
+                            if (!document.getElementById("hiddenModalStatus")) {
+                                e.preventDefault(); // 🛑 ROCK SOLID STOP
+                                modal.classList.remove("hidden"); // Modal show karo
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Cancel Button Logic
+            document.getElementById("closeModalBtn").addEventListener("click", function() {
+                modal.classList.add("hidden");
+            });
+
+            // Confirm Button Logic
+            document.getElementById("confirmModalBtn").addEventListener("click", function() {
+                const statusSelect = document.getElementById("modalStatusSelect");
+                const selectedValue = statusSelect.value;
+
+                if (!selectedValue) {
+                    alert("Please select a status first.");
+                    return;
+                }
+
+                // Naya status input form me inject karo
+                let hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.id = "hiddenModalStatus"; // Ye ID zaruri hai
+                hiddenInput.name = "modal_new_status";
+                hiddenInput.value = selectedValue;
+                form.appendChild(hiddenInput);
+
+                // Modal hide karo
+                modal.classList.add("hidden");
+
+                // JavaScript ke native form.submit() se trigger karo (Ye event listeners ko bypass kar deta hai)
+                form.submit(); 
+            });
+        });
+    </script>
+{% endblock %}

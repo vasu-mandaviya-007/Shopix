@@ -139,7 +139,7 @@ export default function Stepper({ activeStep }) {
         //     })}
         // </div>
 
-        <div className='mb-20 flex w-4/5 m-auto justify-between px-10 py-5 gap-8'>
+        <div className='mb-20 hidden md:flex  w-4/5 m-auto justify-between md:px-10 py-5 gap-8'>
 
             {
                 steps.map((step, index) => {
@@ -153,15 +153,15 @@ export default function Stepper({ activeStep }) {
                             {
                                 step.id != 1 && (
                                     <div className='progress-bar overflow-hidden w-full h-1.5 bg-gray-300 rounded-full'>
-                                        <div className={`h-full rounded-full ${(isCompleted || isCurrent) && "animate-fill bg-green-500"} ${isPending && (step.id == Math.min(activeStep + 1,4)) ? "w-1/2 bg-blue-500" : "w-0"}`}></div>
+                                        <div className={`h-full rounded-full ${(isCompleted || isCurrent) && "animate-fill w-full! bg-green-500"} ${isPending && (step.id == Math.min(activeStep + 1,4)) ? "w-1/2 bg-blue-500" : "w-0"}`}></div>
                                     </div>
                                 )
                             }
                             <div className='flex relative'>
-                                <button className={`border border-gray-400 ${isCompleted ? "bg-green-600 text-white" : isCurrent ? "bg-blue-500 text-white outline-2 outline-blue-500 " : "text-gray-500"} rounded-full p-3 text-lg outline-offset-4`}> {step.icon} </button>
+                                <button className={`border border-gray-400 ${isCompleted ? "bg-green-600 text-white" : isCurrent ? "bg-blue-500 text-white outline-2 outline-blue-500 " : "text-gray-500"} rounded-full p-2 md:p-3 text-xs md:text-lg outline-offset-4`}> {step.icon} </button>
                                 <div className='mt-3 flex flex-col gap-1 items-center absolute top-full left-1/2 -translate-x-1/2'>
-                                    <p className='font-semibold text-sm text-black/70'>{step.label}</p>
-                                    <span className={`text-xs w-fit text-nowrap px-4 py-1 rounded-full font-medium ${isCompleted ? "text-green-600 bg-green-100" : isCurrent ? "text-blue-500 bg-blue-100" : "text-gray-500 bg-gray-100" } `}> { isCompleted ? "Completed" : isCurrent ? "In Progress" : "Pending" } </span>
+                                    <p className='font-semibold text-mobile-1 md:text-sm text-black/70'>{step.label}</p>
+                                    <span className={`text-mobile-1 md:text-xs w-fit text-nowrap px-2 py-1 md:px-4 md:py-1 rounded-full font-medium ${isCompleted ? "text-green-600 bg-green-100" : isCurrent ? "text-blue-500 bg-blue-100" : "text-gray-500 bg-gray-100" } `}> { isCompleted ? "Completed" : isCurrent ? "In Progress" : "Pending" } </span>
                                 </div>
                             </div>
                         </div>

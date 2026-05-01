@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Samsung Galaxy S24 Ultra-demo",
+    "slug": "samsung-s24-ultra-512gb-demo",
+    "brand": "Samsung",
+    "primary_category": "Android Phones",
+    "categories": "Smartphones|Android Phones",
+    "is_active": true
+  },
+  {
+    "title": "iPhone 15 Pro-demo",
+    "slug": "iphone-15-pro-256gb-demo",
+    "brand": "Apple",
+    "primary_category": "IPhones",
+    "categories": "Smartphones|IPhones",
+    "is_active": true
+  }
+]

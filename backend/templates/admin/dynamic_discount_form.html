@@ -1,0 +1,50 @@
+{% extends "unfold/layouts/base.html" %}
+
+{% block content %}
+
+<div class="max-w-xl mx-auto mt-10">
+
+    <div class="bg-white dark:bg-surface-dark! border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm p-6">
+        
+        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white mb-2">Apply Dynamic Discount</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            You are applying discount on <strong>{{ queryset.count }}</strong> products. Enter Discount Percentage (e.g. 15).
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% for obj in queryset %}
+                <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
+            {% endfor %}
+            <input type="hidden" name="action" value="apply_dynamic_discount">
+            
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Discount Percentage (%)</label>
+                <div class="relative">
+                    <input 
+                        type="number" 
+                        name="discount_percentage" 
+                        required min="1" 
+                        max="99" 
+                        placeholder="Ex. 15" 
+                        class="w-full bg-gray-50 dark:bg-border-dark! border border-gray-300 dark:border-gray-700 rounded-md p-3 text-lg text-gray-900 dark:text-white focus:ring outline-none focus:ring-blue-400  font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span class="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">%</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button type="submit" name="apply_discount" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-md shadow-sm transition">
+                    Confirm Discount
+                </button>
+                
+                <a href="#" onclick="window.history.back();" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2.5 px-6 rounded-md shadow-sm transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+        
+    </div>
+</div>
+{% endblock %}
