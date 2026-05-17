@@ -537,25 +537,234 @@
 // export default Profile
 
 
-import { Button, TextField, useMediaQuery, useTheme } from '@mui/material'
-import React, { useContext, useEffect, useRef, useState } from 'react'
-import { FaPen } from 'react-icons/fa'
+// import { Button, TextField, useMediaQuery, useTheme } from '@mui/material'
+// import React, { useContext, useEffect, useRef, useState } from 'react'
+// import { FaPen } from 'react-icons/fa'
+// import { AuthContext } from '../context/AuthContext'
+// import { getAccess } from '../auth'
+// import default_avatar from "../assets/default-avatar.png"
+// import API_BASE_URL from '../config/config'
+// import { toast } from 'react-toastify'
+// import { ImSpinner3 } from 'react-icons/im'
+
+// const Profile = () => {
+
+//     const theme = useTheme();
+//     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+//     const profilePicRef = useRef(null)
+//     const { user, fetchUser } = useContext(AuthContext);
+
+//     const [isEditing, setIsEditing] = useState(false)
+//     const [loading, setLoading] = useState(false)
+
+//     const [profile, setProfile] = useState({
+//         email: '',
+//         first_name: '',
+//         last_name: '',
+//         phone_number: '',
+//         profile_pic: '',
+//     });
+
+//     useEffect(() => {
+//         setProfile(user)
+//     }, [user])
+
+//     const [profilePic, setProfilePic] = useState("")
+
+//     const handleChange = (e) => {
+//         setProfile({
+//             ...profile,
+//             [e.target.name]: e.target.value
+//         });
+//     };
+
+//     const handleImageChange = (e) => {
+//         const image = e.target.files[0]
+//         if (image) {
+//             setProfile({
+//                 ...profile,
+//                 profile_pic: URL.createObjectURL(image)
+//             });
+//             setProfilePic(image)
+//         }
+//     }
+
+//     const handleSave = async () => {
+//         setLoading(true)
+
+//         const formData = new FormData();
+//         formData.append('first_name', profile.first_name || '');
+//         formData.append('last_name', profile.last_name || '');
+//         formData.append('phone_number', profile.phone_number || '');
+
+//         if (profilePic) {
+//             formData.append('profile_pic', profilePic);
+//         }
+
+//         try {
+//             const token = getAccess();
+//             const response = await fetch(`${API_BASE_URL}/api/auth/profile/`, {
+//                 method: 'PATCH',
+//                 headers: {
+//                     'Authorization': `Bearer ${token}`,
+//                 },
+//                 body: formData
+//             });
+
+//             if (response.ok) {
+//                 setProfilePic(null);
+//                 setIsEditing(false);
+//                 fetchUser();
+//                 toast.success("Profile updated");
+//             } else {
+//                 alert("Failed to update profile.");
+//             }
+//         } catch (error) {
+//             console.error("Error updating profile:", error);
+//         } finally {
+//             setLoading(false)
+//         }
+//     };
+
+//     return (
+
+//         <div className='relative px-4 py-6 md:px-8 lg:py-8'>
+
+//             <div className='flex items-center justify-between'>
+//                 <h1 className='font-bold text-lg sm:text-xl text-gray-800'>Personal Information</h1>
+//                 {
+//                     !isEditing && (
+//                         <Button onClick={() => setIsEditing(true)} variant='contained' size="small" className="sm:px-4" startIcon={<FaPen size={12} />}>
+//                             Edit
+//                         </Button>
+//                     )
+//                 }
+//             </div>
+
+//             <div className='mt-6 md:mt-8'>
+
+//                 <div onClick={() => { isEditing && !loading && profilePicRef.current.click() }} className='h-24 w-24 md:h-28 md:w-28 bg-gray-100 border border-gray-300 rounded-full group overflow-hidden relative cursor-pointer shadow-sm'>
+
+//                     <input ref={profilePicRef} onChange={handleImageChange} type="file" accept='.png, .jpg, .jpeg' className='hidden' id='profile-pic' />
+
+//                     {
+//                         isEditing && !loading && (
+//                             <div className='bg-black/40 text-white font-semibold text-sm absolute text-center w-full h-full flex items-center justify-center rounded-full opacity-0 -z-1 pointer-events-none top-0 left-0 group-hover:opacity-100 group-hover:z-10 transition-opacity' >
+//                                 Change <br /> Photo
+//                             </div>
+//                         )
+//                     }
+
+//                     <img src={`${profile?.profile_pic || profilePic || default_avatar}`} className={`absolute top-1/2 left-1/2 h-full w-full object-cover ${loading || !isEditing ? "cursor-default" : "cursor-pointer"} -translate-x-1/2 -translate-y-1/2`} alt="" />
+
+//                 </div>
+
+//                 <div className='flex flex-col sm:flex-row mt-6 md:mt-8 gap-4 sm:gap-5'>
+
+//                     <div className='w-full'>
+//                         <span className='text-gray-700 font-semibold text-sm md:text-base mb-1 block'>First Name</span>
+//                         <TextField
+//                             placeholder=''
+//                             size={isMobile ? "small" : "medium"}
+//                             name='first_name'
+//                             value={profile?.first_name || ""}
+//                             onChange={handleChange}
+//                             disabled={!isEditing || loading}
+//                             fullWidth
+//                         />
+//                     </div>
+
+//                     <div className='w-full'>
+//                         <span className='text-gray-700 font-semibold text-sm md:text-base mb-1 block'>Last Name</span>
+//                         <TextField
+//                             placeholder=''
+//                             size={isMobile ? "small" : "medium"}
+//                             name='last_name'
+//                             value={profile?.last_name || ""}
+//                             onChange={handleChange}
+//                             disabled={!isEditing || loading}
+//                             fullWidth
+//                         />
+//                     </div>
+
+//                 </div>
+
+//                 {/* 🌟 FIX: Email aur Phone ko bhi 'flex-row' me wrap kiya taaki ajeeb se aade na katen */}
+//                 <div className='flex flex-col sm:flex-row mt-5 sm:mt-6 gap-4 sm:gap-5'>
+
+//                     <div className='w-full'>
+//                         <span className='text-gray-700 font-semibold text-sm md:text-base mb-1 block'>Email</span>
+//                         <TextField
+//                             placeholder=''
+//                             size={isMobile ? "small" : "medium"}
+//                             name='email'
+//                             value={profile?.email || ""}
+//                             onChange={handleChange}
+//                             disabled={!isEditing || loading}
+//                             fullWidth
+//                         />
+//                     </div>
+
+//                     <div className='w-full'>
+//                         <span className='text-gray-700 font-semibold text-sm md:text-base mb-1 block'>Phone Number</span>
+//                         <TextField
+//                             placeholder=''
+//                             size={isMobile ? "small" : "medium"}
+//                             name='phone_number'
+//                             value={profile?.phone_number || ""}
+//                             onChange={handleChange}
+//                             disabled={!isEditing || loading}
+//                             fullWidth
+//                         />
+//                     </div>
+
+//                 </div>
+
+//                 {
+//                     isEditing && (
+//                         <div className='flex flex-col sm:flex-row gap-4 mt-8 pt-4 border-t border-gray-100'>
+//                             <Button onClick={handleSave} disabled={loading} loading={loading} loadingIndicator={<ImSpinner3 className='text-xl animate-spin' />} loadingPosition='start' className='py-2.5 sm:py-3!' variant='contained' fullWidth >
+//                                 {loading ? "Saving..." : "Save Changes"}
+//                             </Button>
+
+//                             <Button onClick={() => setIsEditing(false)} className='py-2.5 sm:py-3!' disabled={loading} variant='outlined' color='inherit' fullWidth >
+//                                 Cancel
+//                             </Button>
+//                         </div>
+//                     )
+//                 }
+
+//             </div>
+
+//         </div>
+//     )
+// }
+
+// export default Profile
+
+
+
+
+
+import { Button, TextField } from '@mui/material'
+import React, { useContext, useRef, useState, useEffect } from 'react'
+import { FaPen, FaCamera } from 'react-icons/fa'
 import { AuthContext } from '../context/AuthContext'
 import { getAccess } from '../auth'
 import default_avatar from "../assets/default-avatar.png"
 import API_BASE_URL from '../config/config'
 import { toast } from 'react-toastify'
 import { ImSpinner3 } from 'react-icons/im'
+import { MdEmail, MdPhone, MdPerson } from 'react-icons/md'
 
 const Profile = () => {
 
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const profilePicRef = useRef(null)
+    const profilePicRef = useRef(null);
     const { user, fetchUser } = useContext(AuthContext);
 
-    const [isEditing, setIsEditing] = useState(false)
-    const [loading, setLoading] = useState(false)
+    const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [profilePic, setProfilePic] = useState("");
 
     const [profile, setProfile] = useState({
         email: '',
@@ -566,178 +775,242 @@ const Profile = () => {
     });
 
     useEffect(() => {
-        setProfile(user)
-    }, [user])
-
-    const [profilePic, setProfilePic] = useState("")
+        setProfile(user);
+    }, [user]);
 
     const handleChange = (e) => {
-        setProfile({
-            ...profile,
-            [e.target.name]: e.target.value
-        });
+        setProfile({ ...profile, [e.target.name]: e.target.value });
     };
 
     const handleImageChange = (e) => {
-        const image = e.target.files[0]
+        const image = e.target.files[0];
         if (image) {
-            setProfile({
-                ...profile,
-                profile_pic: URL.createObjectURL(image)
-            });
-            setProfilePic(image)
+            setProfile({ ...profile, profile_pic: URL.createObjectURL(image) });
+            setProfilePic(image);
         }
-    }
+    };
 
     const handleSave = async () => {
-        setLoading(true)
-
+        setLoading(true);
         const formData = new FormData();
         formData.append('first_name', profile.first_name || '');
         formData.append('last_name', profile.last_name || '');
         formData.append('phone_number', profile.phone_number || '');
-
-        if (profilePic) {
-            formData.append('profile_pic', profilePic);
-        }
+        if (profilePic) formData.append('profile_pic', profilePic);
 
         try {
             const token = getAccess();
             const response = await fetch(`${API_BASE_URL}/api/auth/profile/`, {
                 method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+                headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
             });
-
             if (response.ok) {
                 setProfilePic(null);
                 setIsEditing(false);
                 fetchUser();
-                toast.success("Profile updated");
+                toast.success("Profile updated successfully");
             } else {
-                alert("Failed to update profile.");
+                toast.error("Failed to update profile.");
             }
         } catch (error) {
             console.error("Error updating profile:", error);
+            toast.error("Something went wrong.");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     };
 
+    const handleCancel = () => {
+        setProfile(user);
+        setProfilePic("");
+        setIsEditing(false);
+    };
+
     return (
+        <div className='px-4 py-6 sm:px-6 lg:px-8 lg:py-8'>
 
-        <div className='relative px-4 py-6 md:px-8 lg:py-8'>
-
-            <div className='flex items-center justify-between'>
-                <h1 className='font-bold text-lg sm:text-xl text-gray-800'>Personal Information</h1>
-                {
-                    !isEditing && (
-                        <Button onClick={() => setIsEditing(true)} variant='contained' size="small" className="sm:px-4" startIcon={<FaPen size={12} />}>
-                            Edit
-                        </Button>
-                    )
-                }
+            {/* ── Header ── */}
+            <div className='flex items-center justify-between mb-6 sm:mb-8'>
+                <div>
+                    <h1 className='font-bold text-base sm:text-lg text-gray-900'>Personal Information</h1>
+                    <p className='text-xs sm:text-sm text-gray-400 mt-0.5'>Manage your personal details</p>
+                </div>
+                {!isEditing && (
+                    <Button
+                        onClick={() => setIsEditing(true)}
+                        variant='outlined'
+                        size="small"
+                        startIcon={<FaPen size={11} />}
+                        className="rounded-lg! border-gray-300! text-gray-600! hover:border-gray-400! capitalize! text-xs! sm:text-sm!"
+                    >
+                        Edit
+                    </Button>
+                )}
             </div>
 
-            <div className='mt-6 md:mt-8'>
-
-                <div onClick={() => { isEditing && !loading && profilePicRef.current.click() }} className='h-24 w-24 md:h-28 md:w-28 bg-gray-100 border border-gray-300 rounded-full group overflow-hidden relative cursor-pointer shadow-sm'>
-
-                    <input ref={profilePicRef} onChange={handleImageChange} type="file" accept='.png, .jpg, .jpeg' className='hidden' id='profile-pic' />
-
-                    {
-                        isEditing && !loading && (
-                            <div className='bg-black/40 text-white font-semibold text-sm absolute text-center w-full h-full flex items-center justify-center rounded-full opacity-0 -z-1 pointer-events-none top-0 left-0 group-hover:opacity-100 group-hover:z-10 transition-opacity' >
-                                Change <br /> Photo
-                            </div>
-                        )
-                    }
-
-                    <img src={`${profile?.profile_pic || profilePic || default_avatar}`} className={`absolute top-1/2 left-1/2 h-full w-full object-cover ${loading || !isEditing ? "cursor-default" : "cursor-pointer"} -translate-x-1/2 -translate-y-1/2`} alt="" />
-
+            {/* ── Avatar ── */}
+            <div className='flex items-center gap-4 sm:gap-5 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-gray-100'>
+                <div
+                    onClick={() => isEditing && !loading && profilePicRef.current.click()}
+                    className={`relative h-20 w-20 sm:h-24 sm:w-24 rounded-2xl overflow-hidden shrink-0 shadow-md ${isEditing && !loading ? 'cursor-pointer' : 'cursor-default'}`}
+                >
+                    <input
+                        ref={profilePicRef}
+                        onChange={handleImageChange}
+                        type="file"
+                        accept='.png,.jpg,.jpeg'
+                        className='hidden'
+                    />
+                    <img
+                        src={profile?.profile_pic || default_avatar}
+                        className='w-full h-full object-cover'
+                        alt="Profile"
+                    />
+                    {isEditing && !loading && (
+                        <div className='absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-2xl'>
+                            <FaCamera className='text-white text-lg mb-1' />
+                            <span className='text-white text-mobile-1 font-semibold'>Change</span>
+                        </div>
+                    )}
                 </div>
 
-                <div className='flex flex-col sm:flex-row mt-6 md:mt-8 gap-4 sm:gap-5'>
+                <div>
+                    <h2 className='font-bold text-gray-900 text-sm sm:text-base'>
+                        {profile?.first_name} {profile?.last_name}
+                    </h2>
+                    <p className='text-gray-400 text-xs sm:text-sm mt-0.5 truncate max-w-45 sm:max-w-none'>
+                        {profile?.email}
+                    </p>
+                    {isEditing && (
+                        <p className='text-mobile-1 sm:text-xs text-blue-500 font-medium mt-1.5'>
+                            Tap photo to change
+                        </p>
+                    )}
+                </div>
+            </div>
 
-                    <div className='w-full'>
-                        <span className='text-gray-700 font-semibold text-sm md:text-base mb-1 block'>First Name</span>
+            {/* ── Form Fields ── */}
+            <div className='space-y-4 sm:space-y-5'>
+
+                {/* Name Row */}
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5'>
+                    <div>
+                        <label className='text-xs sm:text-sm font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5'>
+                            <MdPerson className='text-gray-400' /> First Name
+                        </label>
                         <TextField
-                            placeholder=''
-                            size={isMobile ? "small" : "medium"}
+                            // size="small"
                             name='first_name'
                             value={profile?.first_name || ""}
                             onChange={handleChange}
                             disabled={!isEditing || loading}
                             fullWidth
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    
+                                    fontSize: '14px',
+                                }
+                            }}
                         />
                     </div>
-
-                    <div className='w-full'>
-                        <span className='text-gray-700 font-semibold text-sm md:text-base mb-1 block'>Last Name</span>
+                    <div>
+                        <label className='text-xs sm:text-sm font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5'>
+                            <MdPerson className='text-gray-400' /> Last Name
+                        </label>
                         <TextField
-                            placeholder=''
-                            size={isMobile ? "small" : "medium"}
+                            // size="small"
                             name='last_name'
                             value={profile?.last_name || ""}
                             onChange={handleChange}
                             disabled={!isEditing || loading}
                             fullWidth
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    
+                                    fontSize: '14px',
+                                }
+                            }}
                         />
                     </div>
-
                 </div>
 
-                {/* 🌟 FIX: Email aur Phone ko bhi 'flex-row' me wrap kiya taaki ajeeb se aade na katen */}
-                <div className='flex flex-col sm:flex-row mt-5 sm:mt-6 gap-4 sm:gap-5'>
-
-                    <div className='w-full'>
-                        <span className='text-gray-700 font-semibold text-sm md:text-base mb-1 block'>Email</span>
+                {/* Email + Phone Row */}
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5'>
+                    <div>
+                        <label className='text-xs sm:text-sm font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5'>
+                            <MdEmail className='text-gray-400' /> Email
+                        </label>
                         <TextField
-                            placeholder=''
-                            size={isMobile ? "small" : "medium"}
+                            // size="small"
                             name='email'
                             value={profile?.email || ""}
                             onChange={handleChange}
-                            disabled={!isEditing || loading}
+                            disabled={true}
                             fullWidth
+                            sx={{
+                                '& .MuiInputBase-input' : {
+                                    padding : {sm : '10px 12px', md: '16.5px 14px'},
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                    fontSize: '14px',
+                                    // backgroundColor: '#f9fafb',
+                                }
+                            }}
                         />
                     </div>
-
-                    <div className='w-full'>
-                        <span className='text-gray-700 font-semibold text-sm md:text-base mb-1 block'>Phone Number</span>
+                    <div>
+                        <label className='text-xs sm:text-sm font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5'>
+                            <MdPhone className='text-gray-400' /> Phone Number
+                        </label>
                         <TextField
-                            placeholder=''
-                            size={isMobile ? "small" : "medium"}
+                            // size="small"
                             name='phone_number'
                             value={profile?.phone_number || ""}
                             onChange={handleChange}
                             disabled={!isEditing || loading}
                             fullWidth
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    
+                                    fontSize: '14px',
+                                }
+                            }}
                         />
                     </div>
-
                 </div>
-
-                {
-                    isEditing && (
-                        <div className='flex flex-col sm:flex-row gap-4 mt-8 pt-4 border-t border-gray-100'>
-                            <Button onClick={handleSave} disabled={loading} loading={loading} loadingIndicator={<ImSpinner3 className='text-xl animate-spin' />} loadingPosition='start' className='py-2.5 sm:py-3!' variant='contained' fullWidth >
-                                {loading ? "Saving..." : "Save Changes"}
-                            </Button>
-
-                            <Button onClick={() => setIsEditing(false)} className='py-2.5 sm:py-3!' disabled={loading} variant='outlined' color='inherit' fullWidth >
-                                Cancel
-                            </Button>
-                        </div>
-                    )
-                }
 
             </div>
 
-        </div>
-    )
-}
+            {/* ── Action Buttons ── */}
+            {isEditing && (
+                <div className='flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-5 border-t border-gray-100'>
+                    <Button
+                        onClick={handleSave}
+                        disabled={loading}
+                        loading={loading}
+                        loadingIndicator={<ImSpinner3 className='text-base animate-spin' />}
+                        loadingPosition='start'
+                        variant='contained'
+                        fullWidth
+                        className='py-2.5! rounded-xl! shadow-none! capitalize! text-sm! bg-slate-800! hover:bg-slate-700!'
+                    >
+                        {loading ? "Saving..." : "Save Changes"}
+                    </Button>
+                    <Button
+                        onClick={handleCancel}
+                        disabled={loading}
+                        variant='outlined'
+                        fullWidth
+                        className='py-2.5! rounded-xl! capitalize! text-sm! border-gray-200! text-gray-600! hover:bg-gray-50!'
+                    >
+                        Cancel
+                    </Button>
+                </div>
+            )}
 
-export default Profile
+        </div>
+    );
+};
+
+export default Profile;

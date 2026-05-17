@@ -16,3 +16,10 @@ frontend/build/
 frontend/dist/
 .env.local
 open.bat
+
+data.json
+ecommerce (react+django).code-workspace
+open.bat
+start_dev.ps1
+start.ps1
+command.txt
