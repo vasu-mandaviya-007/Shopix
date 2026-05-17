@@ -1,6 +1,6 @@
 # 🛒 Shopix - Premium E-Commerce SaaS Platform
 
-![Shopix Banner](https://via.placeholder.com/1200x400/0f172a/ffffff?text=Shopix+-+Next+Gen+E-Commerce)
+![Shopix Banner](https://shopix-three.vercel.app/assets/shopix_logo-D59WhVq6.png)
 
 **Shopix** is a high-performance, full-stack e-commerce platform built with a focus on modern UI/UX, scalable architecture, and secure transactions. Designed with a premium "Apple/Shopify" aesthetic, it features advanced product variant handling, smart caching, and seamless checkout flows.
 
