@@ -5,8 +5,8 @@
 **Shopix** is a high-performance, full-stack e-commerce platform built with a focus on modern UI/UX, scalable architecture, and secure transactions. Designed with a premium "Apple/Shopify" aesthetic, it features advanced product variant handling, smart caching, and seamless checkout flows.
 
 ### 🌐 Live Links
-* **Live Demo (Frontend):** [Link to your Live Website](https://shopix-three.vercel.app/)
-* **Live API (Backend):** [Link to your Backend API](https://shopix-cqpt.onrender.com/admin/)
+* **Live Demo (Frontend):** [Shopix - Online Ecommerce Website](https://shopix-three.vercel.app/)
+* **Live Admin Panel (Backend):** [Shopix Backend](https://shopix-cqpt.onrender.com/admin/)
 
 ---
 
